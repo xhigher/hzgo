@@ -20,3 +20,6 @@ type Router struct {
 	Handler app.HandlerFunc
 }
 
+type Manager interface {
+	Routers() []Router
+}

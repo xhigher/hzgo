@@ -15,7 +15,8 @@ type HzgoServer struct {
 	Auth *auth.HzgoJWTMiddleware
 }
 
-func (s *HzgoServer) InitRouters(routers []router.Router) {
+func (s *HzgoServer) InitRouter(mgr router.Manager) {
+	routers := mgr.Routers()
 	for _, r := range routers {
 		if r.Version == 0 {
 			r.Version = 1
@@ -45,6 +46,7 @@ func (s *HzgoServer) InitAuth(mw *auth.HzgoJWTMiddleware) {
 	if err != nil {
 		panic(err)
 	}
+	s.InitRouter(mw)
 }
 
 func New() *HzgoServer{

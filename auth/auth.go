@@ -47,6 +47,7 @@ type HzgoJWTMiddleware struct {
 
 	MaxRefresh time.Duration
 
+	Controller HzgoAuthController
 
 	AuthenticationFunc func(ctx context.Context, c *app.RequestContext) (string, error)
 
@@ -99,6 +100,10 @@ func (mw *HzgoJWTMiddleware) MiddlewareInit() error {
 	}
 	if len(mw.SecretKey) == 0 {
 		return ErrMissingSecretKey
+	}
+
+	if mw.Controller == nil {
+		return ErrAuthenticationFuncNil
 	}
 
 	if mw.AuthenticationFunc == nil {
