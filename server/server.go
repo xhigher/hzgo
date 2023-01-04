@@ -6,13 +6,16 @@ import (
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/xhigher/hzgo/auth"
-	"github.com/xhigher/hzgo/log"
+	"github.com/xhigher/hzgo/config"
+	"github.com/xhigher/hzgo/logger"
+	"github.com/xhigher/hzgo/mysql"
 	"github.com/xhigher/hzgo/router"
 )
 
 type HzgoServer struct {
 	Hz *server.Hertz
 	Auth *auth.HzgoJWTMiddleware
+	Config     *config.ServerConfig
 }
 
 func (s *HzgoServer) InitRouter(mgr router.Manager) {
@@ -49,10 +52,12 @@ func (s *HzgoServer) InitAuth(mw *auth.HzgoJWTMiddleware) {
 	s.InitRouter(mw)
 }
 
-func New() *HzgoServer{
-	log.Init("log")
+func New(conf *config.ServerConfig) *HzgoServer{
+	logger.Init(conf.Logger)
+	mysql.Init(conf.Mysql)
 	return &HzgoServer{
 		Hz: server.Default(),
+		Config:     conf,
 	}
 }
 

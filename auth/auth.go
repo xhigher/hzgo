@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/xhigher/hzgo/resp"
+	"github.com/xhigher/hzgo/router"
 	"github.com/xhigher/hzgo/utils"
 	"strings"
 	"time"
@@ -47,11 +48,9 @@ type HzgoJWTMiddleware struct {
 
 	MaxRefresh time.Duration
 
-	Controller HzgoAuthController
-
 	AuthenticationFunc func(ctx context.Context, c *app.RequestContext) (string, error)
 
-	AuthorizationFunc func(data interface{}, ctx context.Context, c *app.RequestContext) bool
+	AuthorizationFunc func(ctx context.Context, c *app.RequestContext, claims HzgoClaims) bool
 
 	LoginFunc func(ctx context.Context, c *app.RequestContext, claims HzgoClaims) bool
 
@@ -102,10 +101,6 @@ func (mw *HzgoJWTMiddleware) MiddlewareInit() error {
 		return ErrMissingSecretKey
 	}
 
-	if mw.Controller == nil {
-		return ErrAuthenticationFuncNil
-	}
-
 	if mw.AuthenticationFunc == nil {
 		return ErrAuthenticationFuncNil
 	}
@@ -127,7 +122,7 @@ func (mw *HzgoJWTMiddleware) MiddlewareInit() error {
 	}
 
 	if mw.AuthorizationFunc == nil {
-		mw.AuthorizationFunc = func(data interface{}, ctx context.Context, c *app.RequestContext) bool {
+		mw.AuthorizationFunc = func(ctx context.Context, c *app.RequestContext, claims HzgoClaims) bool {
 			return true
 		}
 	}
@@ -158,7 +153,7 @@ func (mw *HzgoJWTMiddleware) middlewareImpl(ctx context.Context, c *app.RequestC
 		return
 	}
 
-	if !mw.AuthorizationFunc(claims.Audience, ctx, c) {
+	if !mw.AuthorizationFunc(ctx, c, mw.getClaims(claims)) {
 		resp.ReplyErrorAuthorization(c)
 		return
 	}
@@ -352,3 +347,28 @@ func (mw *HzgoJWTMiddleware) ParseTokenString(token string) (*jwt.Token, error) 
 }
 
 
+func (mw *HzgoJWTMiddleware) Routers() []router.Router{
+	return []router.Router{
+		{
+			Method: router.MethodPost,
+			Version: 1,
+			Path: "login",
+			Auth: false,
+			Handler: mw.LoginHandler,
+		},
+		{
+			Method: router.MethodGet,
+			Version: 1,
+			Path: "logout",
+			Auth: true,
+			Handler: mw.LogoutHandler,
+		},
+		{
+			Method: router.MethodGet,
+			Version: 1,
+			Path: "token",
+			Auth: true,
+			Handler: mw.RefreshHandler,
+		},
+	}
+}

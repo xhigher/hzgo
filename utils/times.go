@@ -29,7 +29,11 @@ func NowTime() int64 {
 }
 
 func NowTimeMillis() int64 {
-	return time.Now().UnixNano() / 1000000
+	return time.Now().UnixMilli()
+}
+
+func NowTimeMicro() int64 {
+	return time.Now().UnixMicro()
 }
 
 func NowYmd() string {
