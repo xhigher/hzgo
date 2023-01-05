@@ -17,7 +17,6 @@ func MD5(str string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-
 func UUID() string {
 	return uuid.New().String()
 }

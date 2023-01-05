@@ -104,4 +104,3 @@ func (e EncodeWrapper) EncodeEntry(ent zapcore.Entry, fields []zapcore.Field) (*
 	ent.Caller.Function = function
 	return e.Encoder.EncodeEntry(ent, fields)
 }
-

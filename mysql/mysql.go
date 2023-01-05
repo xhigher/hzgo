@@ -54,7 +54,7 @@ func gormOptions(dbName string) *gorm.Config {
 	gormLogger := zapgorm2.New(logger.NewLogger().Named("gorm").With(zap.String("db", dbName)))
 	return &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
-		Logger:            gormLogger,
+		Logger:                                   gormLogger,
 	}
 }
 

@@ -6,14 +6,14 @@ import (
 
 const (
 	Local = "local"
-	Dev = "dev"
-	Test = "test"
-	Prod = "prod"
+	Dev   = "dev"
+	Test  = "test"
+	Prod  = "prod"
 )
 
 var env = Test
 
-func Init(e string){
+func Init(e string) {
 	if strings.TrimSpace(e) == "" {
 		env = Test
 	}

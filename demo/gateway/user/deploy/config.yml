@@ -1,0 +1,24 @@
+name: "gw-user"
+addr: 0.0.0.0:8000
+
+logger:
+  filename: /dev/stdout
+
+jwt:
+  realm: hzgo_demo
+  issuer: xhigher
+  secret-key: xhigher123
+  timeout: 2
+  max-refresh-time: 1
+
+mysql:
+  - host: 127.0.0.1
+    port: 3306
+    db-name: hertz_user
+    extras:
+    user: root
+    password: 123123
+    max-idle-conns: 20
+    max-open-conns: 20
+    logger-mode:
+    logger-zap:

@@ -1,13 +1,13 @@
 package config
 
 type LoggerConfig struct {
-	Filename string `yaml:"filename"`
-	Level         string `yaml:"level"`
-	Format        string `yaml:"format"`
-	Prefix        string `yaml:"prefix"`
-	Director      string `yaml:"director"`
-	ShowLine      bool   `yaml:"showLine"`
-	EncodeLevel   string `yaml:"encode-level"`
-	StacktraceKey string `yaml:"stacktrace-key"`
-	LogInConsole  bool   `yaml:"logger-in-console"`
+	Filename      string `mapstructure:"filename" json:"filename" yaml:"filename"`
+	Level         string `mapstructure:"level" json:"level" yaml:"level"`
+	Format        string `mapstructure:"format" json:"format" yaml:"format"`
+	Prefix        string `mapstructure:"prefix" json:"prefix" yaml:"prefix"`
+	Director      string `mapstructure:"director" json:"director" yaml:"director"`
+	ShowLine      bool   `mapstructure:"show-line" json:"show-line" yaml:"show-line"`
+	EncodeLevel   string `mapstructure:"encode-level" json:"encode-level" yaml:"encode-level"`
+	StacktraceKey string `mapstructure:"stacktrace-key" json:"stacktrace-key" yaml:"stacktrace-key"`
+	LogInConsole  bool   `mapstructure:"log-in-console" json:"log-in-console" yaml:"log-in-console"`
 }

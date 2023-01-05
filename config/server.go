@@ -9,18 +9,19 @@ import (
 )
 
 type ServerConfig struct {
-	Env string `yaml:"env"`
-	Name        string             `yaml:"name"`
-	Addr        string             `yaml:"addr"`
-	Logger      *LoggerConfig         `yaml:"logger"`
-	Mysql       []*MysqlConfig     `yaml:"mysql"`
-	Redis       []*RedisConfig     `yaml:"redis"`
-	Pay         *PayConfig         `yaml:"pay"`
+	Env        string         `mapstructure:"env" json:"env" yaml:"env"`
+	Name       string         `mapstructure:"name" json:"name" yaml:"name"`
+	Addr       string         `mapstructure:"addr" json:"addr" yaml:"addr"`
+	MaxReqSize int            `mapstructure:"max-req-size" json:"max-req-size" yaml:"max-req-size"`
+	Logger     *LoggerConfig  `mapstructure:"logger" json:"logger" yaml:"logger"`
+	JWT        *JWTConfig     `mapstructure:"jwt" json:"jwt" yaml:"jwt"`
+	Mysql      []*MysqlConfig `mapstructure:"mysql" json:"mysql" yaml:"mysql"`
+	Redis      []*RedisConfig `mapstructure:"redis" json:"redis" yaml:"redis"`
 }
 
 var (
 	serverConfig = ServerConfig{}
-	configFile string
+	configFile   string
 )
 
 func init() {
@@ -43,8 +44,13 @@ func Init() {
 	if err != nil {
 		panic(fmt.Errorf("errpr viper.Unnarshal %v", err))
 	}
+
+	if serverConfig.MaxReqSize == 0 {
+		serverConfig.MaxReqSize = 20 << 20
+	}
+	if len(serverConfig.Addr) == 0 {
+		serverConfig.Addr = "0.0.0.0:8888"
+	}
+
 	env.Init(serverConfig.Env)
 }
-
-
-

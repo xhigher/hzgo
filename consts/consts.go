@@ -8,9 +8,7 @@ const (
 	StatusOnline  = 1
 	StatusOffline = 2
 
-
-	UserStatusNormal   = 1
-	UserStatusBlocked  = 2
+	UserStatusNormal    = 1
+	UserStatusBlocked   = 2
 	UserStatusCancelled = 3
-
 )
