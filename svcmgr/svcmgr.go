@@ -19,6 +19,7 @@ var (
 type SvcConf struct {
 	Name     string
 	AddrList []string
+	Timeout time.Duration
 }
 
 type ActionResult struct {
@@ -44,8 +45,12 @@ func (a BaseAction) Do() resp.BaseResp {
 
 func Init(confs []SvcConf) {
 	for _, c := range confs {
-		svcClients[c.Name] = newClient(c.Name, c.AddrList[0])
+		svcClients[c.Name] = newClient(c.Name, c.AddrList[0], c.Timeout)
 	}
+}
+
+func GetClient(name string) *SvcClient{
+	return svcClients[name]
 }
 
 type SvcClient struct {
@@ -55,7 +60,7 @@ type SvcClient struct {
 	cli     *client.Client
 }
 
-func newClient(name, addr string) *SvcClient {
+func newClient(name, addr string, timeout time.Duration) *SvcClient {
 	cli, err := client.NewClient()
 	if err != nil {
 		logger.Errorf("svc client [%v] new error: %v", name, err)
@@ -66,21 +71,21 @@ func newClient(name, addr string) *SvcClient {
 		Name: name,
 		Addr: addr,
 		cli:  cli,
-		Timeout: 5*time.Second,
+		Timeout: timeout,
 	}
 }
 
 func (s *SvcClient) Do(uri string, data interface{}) (result resp.BaseResp) {
 	if s.cli == nil {
 		result = resp.ErrorInternal
-		logger.Errorf("svc client [%s] not init: %v", s.Name, s.Addr)
+		logger.Errorf("svc client [%s][%s] not init: %v", s.Name, uri, s.Addr)
 		return
 	}
 
 	bytes, err := json.Marshal(data)
 	if err != nil {
 		result = resp.ErrorInternal
-		logger.Errorf("svc client [%s] data error: %v, %v", s.Name, err, data)
+		logger.Errorf("svc client [%s][%s] data error: %v, %v", s.Name, uri, err, data)
 		return
 	}
 
@@ -94,13 +99,14 @@ func (s *SvcClient) Do(uri string, data interface{}) (result resp.BaseResp) {
 	err = s.cli.DoTimeout(context.Background(), req, res, s.Timeout)
 	if err != nil {
 		result = resp.ErrorInternal
-		logger.Errorf("svc client [%s] resp error: %v, %v", s.Name, err, url)
+		logger.Errorf("svc client [%s][%s] resp error: %v, %v", s.Name, uri, err, url)
 		return
 	}
+	logger.Errorf("svc client [%s][%s] resp: %v", s.Name, uri, string(res.Body()))
 	err = json.Unmarshal(res.Body(), &result)
 	if err != nil {
 		result = resp.ErrorInternal
-		logger.Errorf("svc client [%s] resp error: %v, %v", s.Name, err, string(res.Body()))
+		logger.Errorf("svc client [%s][%s] resp error: %v, %v", s.Name, uri, err, string(res.Body()))
 		return
 	}
 	return

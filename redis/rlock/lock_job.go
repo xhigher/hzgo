@@ -2,7 +2,11 @@ package rlock
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-redis/redis/v8"
+	"github.com/xhigher/hzgo/env"
+	"github.com/xhigher/hzgo/logger"
+	"github.com/xhigher/hzgo/utils"
 	"time"
 )
 
@@ -14,8 +18,8 @@ type LockJobOption struct {
 	TaskRunInterval         time.Duration
 }
 
-func NewLockJob(client *redis.Client, key string, call func(), option *LockJobOption) *LockDoJob {
-	job := &LockDoJob{
+func NewLockJob(client *redis.Client, key string, call func(), option *LockJobOption) *LockJob {
+	job := &LockJob{
 		client: client,
 		key:    key,
 		call:   call,
@@ -47,7 +51,7 @@ func NewLockJob(client *redis.Client, key string, call func(), option *LockJobOp
 	return job
 }
 
-type LockDoJob struct {
+type LockJob struct {
 	client *redis.Client
 	key    string
 	call   func()
@@ -63,12 +67,10 @@ type LockDoJob struct {
 	taskRunInterval         time.Duration
 }
 
-func (l *LockDoJob) Start() {
-	logger.SetCurrentTrace("key:" + l.key)
-	defer logger.DeleteCurrentTrace()
+func (l *LockJob) Start() {
 INIT:
 	l.ctx, l.cancel = context.WithCancel(context.Background())
-	l.text = uuid.NewUUID().String() + env.GetHostName()
+	l.text =  fmt.Sprintf("%d:%s",utils.NowTimeNano(), env.GetHostName())
 	for {
 		res, err := l.client.SetNX(l.ctx, l.key, l.text, l.lockHoldInterval).Result()
 		if err != nil {
@@ -77,7 +79,7 @@ INIT:
 			continue
 		}
 		if !res {
-			time.Sleep(l.reLockInterval + time.Millisecond*time.Duration(util.RandInt64(0, 1000)))
+			time.Sleep(l.reLockInterval + time.Millisecond*time.Duration(utils.RandInt64(0, 1000)))
 			continue
 		}
 		go l.holdKey()
@@ -93,10 +95,8 @@ INIT:
 	}
 }
 
-func (l *LockDoJob) holdKey() {
-	logger.SetCurrentTrace("key:" + l.key)
+func (l *LockJob) holdKey() {
 	defer func() {
-		logger.DeleteCurrentTrace()
 		l.cancel()
 	}()
 
@@ -140,15 +140,14 @@ func LockDo(client *redis.Client, key string, interval time.Duration, f func(inp
 	for {
 		errCount = 0
 		lock, err := NewRetryLock(client, key, time.Minute, time.Second*30, 2)
-		if err != nil {
+		if err == ErrNotObtained {
+			logger.Errorf("not obtained, continue")
+			continue
+		} else if err != nil {
 			logger.Errorf("error get lock %v", err)
 			time.Sleep(time.Minute)
 			continue
 		}
-		if lock == nil {
-			logger.Errorf("not obtained, continue")
-			continue
-		} else
 
 		// start
 		ctx, cancel := context.WithCancel(context.Background())

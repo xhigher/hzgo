@@ -4,11 +4,17 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"github.com/go-redis/redis/v8"
 	"github.com/xhigher/hzgo/logger"
 	"io"
 	"sync/atomic"
 	"time"
+)
+
+var (
+	// ErrNotObtained is returned when a lock cannot be obtained.
+	ErrNotObtained = errors.New("rlock: not obtained")
 )
 
 type SimpleLock struct {
@@ -24,7 +30,7 @@ func NewSimpleLock(client *redis.Client, key string, ttl time.Duration) (lock *S
 		return nil, err
 	}
 	if !ok {
-		return nil, nil
+		return nil, ErrNotObtained
 	}
 	return &SimpleLock{
 		client: client,
@@ -40,6 +46,8 @@ func (c *SimpleLock) Release() (err error) {
 	}
 	return
 }
+
+// --------------------------------------------------------------------
 
 // Lock represents an obtained, distributed lock.
 type RetryLock struct {
@@ -83,7 +91,7 @@ func NewRetryLock(client *redis.Client, key string, ttl time.Duration, retryDura
 
 		backoff := retry.NextBackoff()
 		if backoff < 1 {
-			return nil, nil
+			return nil, ErrNotObtained
 		}
 
 		if timer == nil {
@@ -95,7 +103,7 @@ func NewRetryLock(client *redis.Client, key string, ttl time.Duration, retryDura
 
 		select {
 		case <-ctx.Done():
-			return nil, nil
+			return nil, ErrNotObtained
 		case <-timer.C:
 		}
 	}
@@ -104,7 +112,7 @@ func NewRetryLock(client *redis.Client, key string, ttl time.Duration, retryDura
 func (l *RetryLock) IsOwn() (own bool, err error) {
 	re, err := l.client.Get(context.Background(), l.key).Result()
 	if err == redis.Nil {
-		return false, nil
+		return false, ErrNotObtained
 	} else if err != nil {
 		return false, err
 	}
@@ -243,4 +251,5 @@ func (r *exponentialBackoff) NextBackoff() time.Duration {
 		return d
 	}
 }
+
 

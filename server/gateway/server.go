@@ -21,7 +21,7 @@ type HzgoServer struct {
 func NewServer(conf *config.ServerConfig) *HzgoServer {
 	logger.Init(conf.Logger)
 	mysql.Init(conf.Mysql)
-	fmt.Println("server config: ", utils.JsonString(conf))
+	fmt.Println("server config: ", utils.JSONString(conf))
 	return &HzgoServer{
 		Conf: conf,
 		Hz: server.Default(server.WithHostPorts(conf.Addr),

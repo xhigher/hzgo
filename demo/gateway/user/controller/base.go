@@ -1,6 +1,10 @@
 package controller
 
 import (
+	"context"
+	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/xhigher/hzgo/demo/gateway/api"
+	"github.com/xhigher/hzgo/req"
 	"github.com/xhigher/hzgo/server/gateway"
 	"github.com/xhigher/hzgo/server/gateway/middlewares"
 )
@@ -14,6 +18,16 @@ func New(name string) Controller {
 }
 
 func NewWithAuth(name string, auth *middlewares.JWTAuth) Controller {
+	auth.CheckFunc = func(ctx context.Context, c *app.RequestContext, claims *middlewares.AuthClaims) bool {
+		result := api.User().TokenCheck(req.TokenCheckReq{
+			Userid: claims.Audience,
+			TokenId: claims.TokenId,
+		})
+		if result.NotOK() {
+			return false
+		}
+		return true
+	}
 	return Controller{
 		&gateway.Controller{
 			Name: name,

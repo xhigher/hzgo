@@ -3,7 +3,8 @@ package controller
 import (
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
-	usermodel "github.com/xhigher/hzgo/demo/service/user/model/user"
+	"github.com/xhigher/hzgo/demo/gateway/api"
+	"github.com/xhigher/hzgo/req"
 	"github.com/xhigher/hzgo/resp"
 )
 
@@ -15,9 +16,14 @@ func (ctrl Controller) Renewal(ctx context.Context, c *app.RequestContext) {
 	}
 
 	claims.IssuedAt = 0
-	err = usermodel.SaveToken(claims.Audience, claims.TokenId, claims.ExpiredAt, claims.IssuedAt)
-	if err != nil {
-		resp.ReplyErrorInternal(c)
+	result := api.User().TokenUpdate(req.TokenUpdateReq{
+		Audience: claims.Audience,
+		TokenId: claims.TokenId,
+		ExpiredAt: claims.ExpiredAt,
+		IssuedAt: claims.IssuedAt,
+	})
+	if result.NotOK() {
+		resp.ReplyErr(c, result)
 		return
 	}
 

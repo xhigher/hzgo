@@ -29,6 +29,21 @@ func (ctrl Controller) Routers() []service.Router {
 		},
 		{
 			Version: 1,
+			Path:    "login_check",
+			Handler: ctrl.LoginCheck,
+		},
+		{
+			Version: 1,
+			Path:    "token_update",
+			Handler: ctrl.TokenUpdate,
+		},
+		{
+			Version: 1,
+			Path:    "token_check",
+			Handler: ctrl.TokenCheck,
+		},
+		{
+			Version: 1,
 			Path:    "profile",
 			Handler: ctrl.Profile,
 		},

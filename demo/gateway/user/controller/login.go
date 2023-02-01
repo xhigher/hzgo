@@ -3,8 +3,8 @@ package controller
 import (
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
-	userlogic "github.com/xhigher/hzgo/demo/service/user/logic/user"
-	usermodel "github.com/xhigher/hzgo/demo/service/user/model/user"
+	"github.com/xhigher/hzgo/demo/gateway/api"
+	"github.com/xhigher/hzgo/req"
 	"github.com/xhigher/hzgo/resp"
 )
 
@@ -18,27 +18,42 @@ type TokenData struct {
 	Et    int64  `json:"et"`
 }
 
+type LoginData struct {
+	Userid string `json:"userid"`
+}
+
 func (ctrl Controller) Login(ctx context.Context, c *app.RequestContext) {
-	var req LoginReq
-	if err := c.BindAndValidate(&req); err != nil {
+	var params LoginReq
+	if err := c.BindAndValidate(&params); err != nil {
 		resp.ReplyErrorParam(c)
 		return
 	}
-	userid, err := userlogic.CheckUser(req.Username, req.Password)
+
+	result := api.User().LoginCheck(req.LoginReq{
+		Username: params.Username,
+		Password: params.Password,
+	})
+	if result.NotOK() {
+		resp.ReplyErr(c, result)
+		return
+	}
+	data := &LoginData{}
+	result.GetData(data)
+
+	token, claims, err := ctrl.Auth.CreateToken(data.Userid)
 	if err != nil {
 		resp.ReplyErrorInternal(c)
 		return
 	}
 
-	token, claims, err := ctrl.Auth.CreateToken(userid)
-	if err != nil {
-		resp.ReplyErrorInternal(c)
-		return
-	}
-
-	err = usermodel.SaveToken(claims.Audience, claims.TokenId, claims.ExpiredAt, claims.IssuedAt)
-	if err != nil {
-		resp.ReplyErrorInternal(c)
+	result = api.User().TokenUpdate(req.TokenUpdateReq{
+		Audience: claims.Audience,
+		TokenId: claims.TokenId,
+		ExpiredAt: claims.ExpiredAt,
+		IssuedAt: claims.IssuedAt,
+	})
+	if result.NotOK() {
+		resp.ReplyErr(c, result)
 		return
 	}
 

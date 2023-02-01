@@ -1,6 +1,7 @@
 package resp
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/cloudwego/hertz/pkg/app"
 	"net/http"
@@ -27,7 +28,7 @@ var (
 type BaseResp struct {
 	Code int32       `json:"code"`
 	Msg  string      `json:"msg"`
-	Data interface{} `json:"data"`
+	Data json.RawMessage `json:"data"`
 }
 
 func NewCode(code int32) BaseResp {
@@ -39,10 +40,11 @@ func NewMsg(code int32, msg string) BaseResp {
 }
 
 func NewData(code int32, msg string, data interface{}) BaseResp {
+	raw, _ := json.Marshal(data)
 	return BaseResp{
 		Code: code,
 		Msg:  msg,
-		Data: data,
+		Data: raw,
 	}
 }
 
@@ -58,60 +60,66 @@ func (e BaseResp) NotOK() bool {
 	return !e.IsOK()
 }
 
+func (e BaseResp) GetData(v interface{}) error {
+	return json.Unmarshal(e.Data, &v)
+}
+
 func ReplyOK(ctx *app.RequestContext) {
-	ctx.JSON(http.StatusOK, OK)
+	ctx.AbortWithStatusJSON(http.StatusOK, OK)
 }
 
 func ReplyNOK(ctx *app.RequestContext) {
-	ctx.JSON(http.StatusOK, NOK)
+	ctx.AbortWithStatusJSON(http.StatusOK, NOK)
 }
 
 func ReplyErrorInternal(ctx *app.RequestContext) {
-	ctx.JSON(http.StatusOK, ErrorInternal)
+	ctx.AbortWithStatusJSON(http.StatusOK, ErrorInternal)
 }
 
 func ReplyErrorParam(ctx *app.RequestContext) {
-	ctx.JSON(http.StatusOK, ErrorParam)
+	ctx.AbortWithStatusJSON(http.StatusOK, ErrorParam)
 }
 
 func ReplyErrorPermission(ctx *app.RequestContext) {
-	ctx.JSON(http.StatusOK, ErrorPermission)
+	ctx.AbortWithStatusJSON(http.StatusOK, ErrorPermission)
 }
 
 func ReplyErrorIllegal(ctx *app.RequestContext) {
-	ctx.JSON(http.StatusOK, ErrorIllegal)
+	ctx.AbortWithStatusJSON(http.StatusOK, ErrorIllegal)
 }
 
 func ReplyErrorAuthorization(ctx *app.RequestContext) {
-	ctx.JSON(http.StatusOK, ErrorAuthorization)
+	ctx.AbortWithStatusJSON(http.StatusOK, ErrorAuthorization)
 }
 
 func ReplyErrMsg(ctx *app.RequestContext, msg string) {
-	ctx.JSON(http.StatusOK, BaseResp{
+	ctx.AbortWithStatusJSON(http.StatusOK, BaseResp{
 		Code: NOK.Code,
 		Msg:  msg,
 	})
 }
 
 func ReplyErr(ctx *app.RequestContext, err BaseResp) {
-	ctx.JSON(http.StatusOK, BaseResp{
+	ctx.AbortWithStatusJSON(http.StatusOK, BaseResp{
 		Code: err.Code,
 		Msg:  err.Msg,
 	})
 }
 
 func ReplyData(ctx *app.RequestContext, data interface{}) {
-	ctx.JSON(http.StatusOK, BaseResp{
+	raw, _ := json.Marshal(data)
+	ctx.AbortWithStatusJSON(http.StatusOK, BaseResp{
 		Code: OK.Code,
 		Msg:  OK.Msg,
-		Data: data,
+		Data: raw,
 	})
 }
 
 func Reply(ctx *app.RequestContext, code int32, msg string, data interface{}) {
-	ctx.JSON(http.StatusOK, BaseResp{
+	raw, _ := json.Marshal(data)
+	ctx.AbortWithStatusJSON(http.StatusOK, BaseResp{
 		Code: code,
 		Msg:  msg,
-		Data: data,
+		Data: raw,
 	})
 }
