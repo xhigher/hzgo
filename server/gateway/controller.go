@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/xhigher/hzgo/defines"
 	"github.com/xhigher/hzgo/server/gateway/middlewares"
 )
 
@@ -11,9 +12,13 @@ type Controller struct {
 }
 
 func (ctrl Controller) Userid(c *app.RequestContext) string {
-	return ctrl.Auth.GetAudience(c)
+	return middlewares.GetAudience(c)
 }
 
 func (ctrl Controller) Token(c *app.RequestContext) string {
-	return ctrl.Auth.GetToken(c)
+	return middlewares.GetToken(c)
+}
+
+func (ctrl Controller) BaseParams(c *app.RequestContext) *defines.BaseParams {
+	return middlewares.GetBaseParams(c)
 }

@@ -15,6 +15,7 @@ type ServerConfig struct {
 	MaxReqSize int            `mapstructure:"max-req-size" json:"max-req-size" yaml:"max-req-size"`
 	Logger     *LoggerConfig  `mapstructure:"logger" json:"logger" yaml:"logger"`
 	JWT        *JWTConfig     `mapstructure:"jwt" json:"jwt" yaml:"jwt"`
+	Sec        *SecConfig     `mapstructure:"sec" json:"sec" yaml:"sec"`
 	Mysql      []*MysqlConfig `mapstructure:"mysql" json:"mysql" yaml:"mysql"`
 	Redis      []*RedisConfig `mapstructure:"redis" json:"redis" yaml:"redis"`
 }

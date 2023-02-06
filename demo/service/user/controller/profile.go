@@ -3,7 +3,7 @@ package controller
 import (
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
-	model_user "github.com/xhigher/hzgo/demo/service/user/model/user"
+	model "github.com/xhigher/hzgo/demo/service/user/model/user"
 	"github.com/xhigher/hzgo/resp"
 )
 
@@ -12,7 +12,7 @@ func (ctrl Controller) Profile(ctx context.Context, c *app.RequestContext) {
 	if !ok {
 		return
 	}
-	userInfo, err := model_user.GetUserById(userid)
+	userInfo, err := model.GetUserById(userid)
 	if err != nil {
 		resp.ReplyErrorInternal(c)
 		return

@@ -109,7 +109,7 @@ func (mw *JWTAuth) Authenticate() app.HandlerFunc {
 			}
 		}
 
-		mw.SetAudience(c, claims.Audience[0])
+		setAudience(c, claims.Audience[0])
 
 		c.Next(ctx)
 	}
@@ -135,7 +135,7 @@ func (mw *JWTAuth) parseToken(ctx context.Context, c *app.RequestContext) (*jwt.
 			return nil, ErrInvalidSigningAlgorithm
 		}
 
-		mw.SetToken(c, token)
+		setToken(c, token)
 
 		return mw.SecretKey, nil
 	})
@@ -185,7 +185,7 @@ func (mw *JWTAuth) CreateToken(audience string) (tokenValue string, claims *Auth
 }
 
 func (mw *JWTAuth) RenewalToken(c *app.RequestContext) (tokenValue string, claims *AuthClaims, err error){
-	tokenString := mw.GetToken(c)
+	tokenString := GetToken(c)
 	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(t *jwt.Token) (interface{}, error) {
 		if jwt.GetSigningMethod(SigningAlgorithm) != t.Method {
 			return nil, ErrInvalidSigningAlgorithm
@@ -216,24 +216,3 @@ func (mw *JWTAuth) RenewalToken(c *app.RequestContext) (tokenValue string, claim
 	return
 }
 
-func (mw *JWTAuth) SetToken(c *app.RequestContext, token string) {
-	c.Set("JWT_TOKEN", token)
-}
-
-func (mw *JWTAuth) GetToken(c *app.RequestContext) string {
-	if token, ok := c.Get("JWT_TOKEN"); ok {
-		return token.(string)
-	}
-	return ""
-}
-
-func (mw *JWTAuth) SetAudience(c *app.RequestContext, audience string) {
-	c.Set("JWT_AUDIENCE", audience)
-}
-
-func (mw *JWTAuth) GetAudience(c *app.RequestContext) string {
-	if audience, ok := c.Get("JWT_AUDIENCE"); ok {
-		return audience.(string)
-	}
-	return ""
-}

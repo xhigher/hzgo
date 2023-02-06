@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/hmac"
 	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/base64"
@@ -94,4 +95,11 @@ func EncryptSha256(s string) string {
 	hash.Write([]byte(s))
 	sum := hash.Sum(nil)
 	return hex.EncodeToString(sum)
+}
+
+func EncryptHmacSha1(secret, text string) (sha string) {
+	h := hmac.New(sha1.New, []byte(secret))
+	h.Write([]byte(text))
+	sha = base64.StdEncoding.EncodeToString(h.Sum(nil))
+	return
 }

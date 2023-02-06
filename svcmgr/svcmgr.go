@@ -102,7 +102,7 @@ func (s *SvcClient) Do(uri string, data interface{}) (result resp.BaseResp) {
 		logger.Errorf("svc client [%s][%s] resp error: %v, %v", s.Name, uri, err, url)
 		return
 	}
-	logger.Errorf("svc client [%s][%s] resp: %v", s.Name, uri, string(res.Body()))
+	logger.Infof("svc client [%s][%s] resp: %v", s.Name, uri, string(res.Body()))
 	err = json.Unmarshal(res.Body(), &result)
 	if err != nil {
 		result = resp.ErrorInternal

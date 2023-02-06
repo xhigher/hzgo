@@ -7,3 +7,8 @@ type JWTConfig struct {
 	Timeout        int    `mapstructure:"timeout" json:"timeout" yaml:"timeout"`
 	MaxRefreshTime int    `mapstructure:"max-refresh-time" json:"max-refresh-time" yaml:"max-refresh-time"`
 }
+
+type SecConfig struct {
+	SignSecret      string `mapstructure:"sign-secret" json:"sign-secret" yaml:"sign-secret"`
+	SignKeyName string `mapstructure:"sign-key-name" json:"sign-key-name" yaml:"sign-key-name"`
+}

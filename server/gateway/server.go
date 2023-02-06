@@ -16,6 +16,7 @@ type HzgoServer struct {
 	Conf *config.ServerConfig
 	Hz   *server.Hertz
 	Auth *middlewares.JWTAuth
+	Sign *middlewares.SecSign
 }
 
 func NewServer(conf *config.ServerConfig) *HzgoServer {
@@ -27,6 +28,7 @@ func NewServer(conf *config.ServerConfig) *HzgoServer {
 		Hz: server.Default(server.WithHostPorts(conf.Addr),
 			server.WithMaxRequestBodySize(conf.MaxReqSize)),
 		Auth: middlewares.NewJWTAuth(conf.JWT),
+		Sign: middlewares.NewSecSign(conf.Sec),
 	}
 }
 
@@ -38,6 +40,9 @@ func (s *HzgoServer) InitRouter(mgr RouterManager) {
 		}
 		path := fmt.Sprintf("/%s/v%d/%s", mgr.Name(), r.Version, r.Path)
 		handlers := make([]app.HandlerFunc, 0)
+		if r.Sign {
+			handlers = append(handlers, s.Sign.Verify())
+		}
 		if r.Auth {
 			handlers = append(handlers, s.Auth.Authenticate())
 		}

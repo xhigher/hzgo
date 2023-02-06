@@ -11,7 +11,7 @@ type Controller struct {
 }
 
 func (ctrl Controller) Userid(c *app.RequestContext) (userid string, ok bool) {
-	params := req.UseridReq{}
+	params := vars.UseridReq{}
 	if err := c.Bind(&params); err != nil {
 		resp.ReplyErrorParam(c)
 		return

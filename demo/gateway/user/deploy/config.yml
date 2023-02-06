@@ -4,6 +4,10 @@ addr: 0.0.0.0:8000
 logger:
   filename: /dev/stdout
 
+sec:
+  sign-secret: ysntsFNlD4nwuolcc8evZtTPsToizNtA
+  sign-key-name: sign
+
 jwt:
   realm: hzgo_demo
   issuer: xhigher

@@ -3,38 +3,11 @@ package controller
 import (
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/xhigher/hzgo/defines"
 	"github.com/xhigher/hzgo/demo/gateway/api"
-	"github.com/xhigher/hzgo/req"
 	"github.com/xhigher/hzgo/server/gateway"
 	"github.com/xhigher/hzgo/server/gateway/middlewares"
 )
-
-func New(name string) Controller {
-	return Controller{
-		&gateway.Controller{
-			Name: name,
-		},
-	}
-}
-
-func NewWithAuth(name string, auth *middlewares.JWTAuth) Controller {
-	auth.CheckFunc = func(ctx context.Context, c *app.RequestContext, claims *middlewares.AuthClaims) bool {
-		result := api.User().TokenCheck(req.TokenCheckReq{
-			Userid: claims.Audience,
-			TokenId: claims.TokenId,
-		})
-		if result.NotOK() {
-			return false
-		}
-		return true
-	}
-	return Controller{
-		&gateway.Controller{
-			Name: name,
-			Auth: auth,
-		},
-	}
-}
 
 type Controller struct {
 	*gateway.Controller
@@ -50,6 +23,7 @@ func (ctrl Controller) Routers() []gateway.Router {
 			Method:  gateway.MethodPost,
 			Version: 1,
 			Path:    "register",
+			Sign: true,
 			Auth:    false,
 			Handler: ctrl.Register,
 		},
@@ -57,6 +31,7 @@ func (ctrl Controller) Routers() []gateway.Router {
 			Method:  gateway.MethodPost,
 			Version: 1,
 			Path:    "login",
+			Sign: true,
 			Auth:    false,
 			Handler: ctrl.Login,
 		},
@@ -64,6 +39,7 @@ func (ctrl Controller) Routers() []gateway.Router {
 			Method:  gateway.MethodGet,
 			Version: 1,
 			Path:    "logout",
+			Sign: true,
 			Auth:    true,
 			Handler: ctrl.Logout,
 		},
@@ -71,6 +47,7 @@ func (ctrl Controller) Routers() []gateway.Router {
 			Method:  gateway.MethodGet,
 			Version: 1,
 			Path:    "renewal",
+			Sign: true,
 			Auth:    true,
 			Handler: ctrl.Renewal,
 		},
@@ -78,8 +55,36 @@ func (ctrl Controller) Routers() []gateway.Router {
 			Method:  gateway.MethodGet,
 			Version: 1,
 			Path:    "profile",
+			Sign: true,
 			Auth:    true,
 			Handler: ctrl.Profile,
+		},
+	}
+}
+
+func New(name string) Controller {
+	return Controller{
+		&gateway.Controller{
+			Name: name,
+		},
+	}
+}
+
+func NewWithAuth(name string, auth *middlewares.JWTAuth) Controller {
+	auth.CheckFunc = func(ctx context.Context, c *app.RequestContext, claims *middlewares.AuthClaims) bool {
+		result := api.User().TokenCheck(defines.TokenCheckReq{
+			Userid: claims.Audience,
+			TokenId: claims.TokenId,
+		})
+		if result.NotOK() {
+			return false
+		}
+		return true
+	}
+	return Controller{
+		&gateway.Controller{
+			Name: name,
+			Auth: auth,
 		},
 	}
 }

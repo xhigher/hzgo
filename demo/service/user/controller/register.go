@@ -3,20 +3,20 @@ package controller
 import (
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
-	usermodel "github.com/xhigher/hzgo/demo/service/user/model/user"
-	"github.com/xhigher/hzgo/req"
+	"github.com/xhigher/hzgo/defines"
+	model "github.com/xhigher/hzgo/demo/service/user/model/user"
 	"github.com/xhigher/hzgo/resp"
 )
 
 
 
 func (ctrl Controller) Register(ctx context.Context, c *app.RequestContext) {
-	params := req.RegisterReq{}
+	params := defines.RegisterReq{}
 	if err := c.Bind(&params); err != nil {
 		resp.ReplyErrorParam(c)
 		return
 	}
-	userInfo, err := usermodel.GetUser(params.Username)
+	userInfo, err := model.GetUser(params.Username)
 	if err != nil {
 		resp.ReplyErrorInternal(c)
 		return
@@ -26,7 +26,7 @@ func (ctrl Controller) Register(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	modelLogic := usermodel.CreateUserLogic{
+	modelLogic := model.CreateUserLogic{
 		Username: params.Username,
 		Password: params.Password,
 	}
@@ -40,5 +40,9 @@ func (ctrl Controller) Register(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	resp.ReplyOK(c)
+	data := &defines.UseridData{
+		Userid: userInfo.Userid,
+	}
+
+	resp.ReplyData(c, data)
 }

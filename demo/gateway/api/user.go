@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/xhigher/hzgo/req"
+	"github.com/xhigher/hzgo/defines"
 	"github.com/xhigher/hzgo/resp"
 	"github.com/xhigher/hzgo/svcmgr"
 )
@@ -32,7 +32,7 @@ func (s SvcUser) Profile(userid string) resp.BaseResp {
 		SvcName: s.name,
 		Name:    "profile",
 		Ver:     1,
-		Data:    req.UseridReq{
+		Data:    defines.UseridReq{
 			Userid: userid,
 		},
 	}.Do()
@@ -70,7 +70,7 @@ func (s SvcUser) Logout(userid string) resp.BaseResp {
 		SvcName: s.name,
 		Name:    "logout",
 		Ver:     1,
-		Data:    req.UseridReq{
+		Data:    defines.UseridReq{
 			Userid: userid,
 		},
 	}.Do()

@@ -18,6 +18,7 @@ type Router struct {
 	Version int
 	Path    string
 	Auth    bool
+	Sign bool
 	Handler app.HandlerFunc
 }
 

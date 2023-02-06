@@ -3,8 +3,8 @@ package controller
 import (
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/xhigher/hzgo/defines"
 	"github.com/xhigher/hzgo/demo/gateway/api"
-	"github.com/xhigher/hzgo/req"
 	"github.com/xhigher/hzgo/resp"
 )
 
@@ -16,7 +16,7 @@ func (ctrl Controller) Renewal(ctx context.Context, c *app.RequestContext) {
 	}
 
 	claims.IssuedAt = 0
-	result := api.User().TokenUpdate(req.TokenUpdateReq{
+	result := api.User().TokenUpdate(defines.TokenUpdateReq{
 		Audience: claims.Audience,
 		TokenId: claims.TokenId,
 		ExpiredAt: claims.ExpiredAt,
@@ -27,7 +27,7 @@ func (ctrl Controller) Renewal(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	resp.ReplyData(c, TokenData{
+	resp.ReplyData(c, defines.TokenData{
 		Token: token,
 		Et:    claims.ExpiredAt,
 	})
