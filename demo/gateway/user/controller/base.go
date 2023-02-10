@@ -3,8 +3,10 @@ package controller
 import (
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/xhigher/hzgo/consts"
 	"github.com/xhigher/hzgo/defines"
-	"github.com/xhigher/hzgo/demo/gateway/api"
+	"github.com/xhigher/hzgo/demo/api"
+	"github.com/xhigher/hzgo/resp"
 	"github.com/xhigher/hzgo/server/gateway"
 	"github.com/xhigher/hzgo/server/gateway/middlewares"
 )
@@ -20,7 +22,7 @@ func (ctrl Controller) Name() string {
 func (ctrl Controller) Routers() []gateway.Router {
 	return []gateway.Router{
 		{
-			Method:  gateway.MethodPost,
+			Method:  consts.MethodPost,
 			Version: 1,
 			Path:    "register",
 			Sign: true,
@@ -28,7 +30,7 @@ func (ctrl Controller) Routers() []gateway.Router {
 			Handler: ctrl.Register,
 		},
 		{
-			Method:  gateway.MethodPost,
+			Method:  consts.MethodPost,
 			Version: 1,
 			Path:    "login",
 			Sign: true,
@@ -36,7 +38,7 @@ func (ctrl Controller) Routers() []gateway.Router {
 			Handler: ctrl.Login,
 		},
 		{
-			Method:  gateway.MethodGet,
+			Method:  consts.MethodGet,
 			Version: 1,
 			Path:    "logout",
 			Sign: true,
@@ -44,7 +46,7 @@ func (ctrl Controller) Routers() []gateway.Router {
 			Handler: ctrl.Logout,
 		},
 		{
-			Method:  gateway.MethodGet,
+			Method:  consts.MethodGet,
 			Version: 1,
 			Path:    "renewal",
 			Sign: true,
@@ -52,7 +54,7 @@ func (ctrl Controller) Routers() []gateway.Router {
 			Handler: ctrl.Renewal,
 		},
 		{
-			Method:  gateway.MethodGet,
+			Method:  consts.MethodGet,
 			Version: 1,
 			Path:    "profile",
 			Sign: true,
@@ -71,9 +73,9 @@ func New(name string) Controller {
 }
 
 func NewWithAuth(name string, auth *middlewares.JWTAuth) Controller {
-	auth.CheckFunc = func(ctx context.Context, c *app.RequestContext, claims *middlewares.AuthClaims) bool {
+	auth.CheckTokenFunc = func(ctx context.Context, c *app.RequestContext, claims *middlewares.AuthClaims) bool {
 		result := api.User().TokenCheck(defines.TokenCheckReq{
-			Userid: claims.Audience,
+			Userid: claims.Subject,
 			TokenId: claims.TokenId,
 		})
 		if result.NotOK() {
@@ -87,4 +89,9 @@ func NewWithAuth(name string, auth *middlewares.JWTAuth) Controller {
 			Auth: auth,
 		},
 	}
+}
+
+func (ctrl Controller) Test(ctx context.Context, c *app.RequestContext) {
+
+	resp.ReplyOK(c)
 }

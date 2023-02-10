@@ -3,7 +3,7 @@ package controller
 import (
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
-	"github.com/xhigher/hzgo/demo/gateway/api"
+	"github.com/xhigher/hzgo/demo/api"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/resp"
 	"github.com/xhigher/hzgo/utils"

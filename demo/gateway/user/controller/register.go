@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/xhigher/hzgo/defines"
-	"github.com/xhigher/hzgo/demo/gateway/api"
+	"github.com/xhigher/hzgo/demo/api"
 	"github.com/xhigher/hzgo/resp"
 )
 

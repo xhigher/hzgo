@@ -35,6 +35,8 @@ var (
 )
 
 type AuthClaims struct {
+	Subject string
+
 	Audience string
 
 	ExpiredAt int64
@@ -54,7 +56,7 @@ type JWTAuth struct {
 	Timeout        time.Duration
 	MaxRefreshTime time.Duration
 
-	CheckFunc func(ctx context.Context, c *app.RequestContext, claims *AuthClaims) bool
+	CheckTokenFunc func(ctx context.Context, c *app.RequestContext, claims *AuthClaims) bool
 }
 
 func NewJWTAuth(conf *config.JWTConfig) *JWTAuth {
@@ -101,14 +103,15 @@ func (mw *JWTAuth) Authenticate() app.HandlerFunc {
 			return
 		}
 
-		if mw.CheckFunc != nil {
-			if !mw.CheckFunc(ctx, c, mw.getClaims(claims)) {
+		if mw.CheckTokenFunc != nil {
+			if !mw.CheckTokenFunc(ctx, c, mw.getClaims(claims)) {
 				logger.Infof("AuthorizationFunc: false")
 				resp.ReplyErrorAuthorization(c)
 				return
 			}
 		}
 
+		setSubject(c, claims.Subject)
 		setAudience(c, claims.Audience[0])
 
 		c.Next(ctx)
@@ -158,6 +161,7 @@ func (mw *JWTAuth) getTokenFromHeader(ctx context.Context, c *app.RequestContext
 
 func (mw *JWTAuth) getClaims(claims *jwt.RegisteredClaims) *AuthClaims {
 	return &AuthClaims{
+		Subject: claims.Subject,
 		Audience:  claims.Audience[0],
 		ExpiredAt: claims.ExpiresAt.Unix(),
 		IssuedAt:  claims.IssuedAt.Unix(),
@@ -165,11 +169,12 @@ func (mw *JWTAuth) getClaims(claims *jwt.RegisteredClaims) *AuthClaims {
 	}
 }
 
-func (mw *JWTAuth) CreateToken(audience string) (tokenValue string, claims *AuthClaims, err error) {
+func (mw *JWTAuth) CreateToken(subject, audience string) (tokenValue string, claims *AuthClaims, err error) {
 	regClaims := &jwt.RegisteredClaims{
 		Issuer:   mw.Issuer,
+		Subject: subject,
 		Audience: jwt.ClaimStrings{audience},
-		ID:       utils.MD5(fmt.Sprintf("%s-%s-%s", mw.Issuer, audience, utils.UUID())),
+		ID:       utils.MD5(fmt.Sprintf("%s-%s-%s", audience, subject, utils.UUID())),
 	}
 	issuedAt := time.Now()
 	expiresAt := time.Now().Add(mw.Timeout)

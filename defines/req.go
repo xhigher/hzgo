@@ -69,3 +69,9 @@ type TokenCheckReq struct {
 	Userid string `form:"userid" json:"userid" query:"userid"`
 	TokenId string `form:"token_id" json:"token_id" query:"token_id"`
 }
+
+type StatusPageReq struct {
+	Status int32 `form:"status" json:"status" query:"status"`
+	Offset int32 `form:"offset" json:"offset" query:"offset"`
+	Limit int32  `form:"limit" json:"limit" query:"limit"`
+}

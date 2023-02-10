@@ -16,6 +16,17 @@ func GetToken(c *app.RequestContext) string {
 	return ""
 }
 
+func setSubject(c *app.RequestContext, subject string) {
+	c.Set("JWT_SUBJECT", subject)
+}
+
+func GetSubject(c *app.RequestContext) string {
+	if subject, ok := c.Get("JWT_SUBJECT"); ok {
+		return subject.(string)
+	}
+	return ""
+}
+
 func setAudience(c *app.RequestContext, audience string) {
 	c.Set("JWT_AUDIENCE", audience)
 }

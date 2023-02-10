@@ -2,19 +2,11 @@ package gateway
 
 import (
 	"github.com/cloudwego/hertz/pkg/app"
-)
-
-type HttpMethod int
-
-const (
-	MethodPost   HttpMethod = 1
-	MethodGet    HttpMethod = 2
-	MethodPut    HttpMethod = 3
-	MethodDelete HttpMethod = 4
+	"github.com/xhigher/hzgo/consts"
 )
 
 type Router struct {
-	Method  HttpMethod
+	Method  consts.HttpMethod
 	Version int
 	Path    string
 	Auth    bool

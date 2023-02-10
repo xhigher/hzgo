@@ -62,7 +62,7 @@ func (mw *SecSign) Verify() app.HandlerFunc {
 			return
 		}
 
-		mw.setBaseParams(c, baseParams)
+		setBaseParams(c, baseParams)
 
 		c.Next(ctx)
 	}
@@ -88,13 +88,3 @@ func (mw *SecSign) getBaseParamsFromHeader(ctx context.Context, c *app.RequestCo
 	return
 }
 
-func (mw *SecSign) setBaseParams(c *app.RequestContext, params *defines.BaseParams) {
-	c.Set("BASE_PARAMS", params)
-}
-
-func (mw *SecSign) GetBaseParams(c *app.RequestContext) *defines.BaseParams {
-	if params, ok := c.Get("BASE_PARAMS"); ok {
-		return params.(*defines.BaseParams)
-	}
-	return nil
-}

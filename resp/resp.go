@@ -80,6 +80,13 @@ func ReplyErrorParam(ctx *app.RequestContext) {
 	ctx.AbortWithStatusJSON(http.StatusOK, ErrorParam)
 }
 
+func ReplyErrorParam2(ctx *app.RequestContext, msg string) {
+	ctx.AbortWithStatusJSON(http.StatusOK, BaseResp{
+		Code: ErrorParam.Code,
+		Msg:  fmt.Sprintf("%s:%s", ErrorParam.Msg, msg),
+	})
+}
+
 func ReplyErrorPermission(ctx *app.RequestContext) {
 	ctx.AbortWithStatusJSON(http.StatusOK, ErrorPermission)
 }

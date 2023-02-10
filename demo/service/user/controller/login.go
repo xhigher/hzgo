@@ -4,7 +4,8 @@ import (
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/xhigher/hzgo/defines"
-	logic "github.com/xhigher/hzgo/demo/service/user/logic/user"
+	"github.com/xhigher/hzgo/demo/service/user/logic"
+	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/resp"
 )
 
@@ -14,9 +15,10 @@ func (ctrl Controller) LoginCheck(ctx context.Context, c *app.RequestContext) {
 		resp.ReplyErrorParam(c)
 		return
 	}
-	userid, err := logic.CheckUser(params.Username, params.Password)
-	if err != nil {
-		resp.ReplyErrorInternal(c)
+	userid, be := logic.CheckUser(params.Username, params.Password)
+	if be != nil {
+		logger.Errorf("error: %v", be.String())
+		resp.ReplyErr(c, be.ToResp())
 		return
 	}
 

@@ -8,9 +8,14 @@ import (
 
 func TestIntToBase36(t *testing.T) {
 
+	sec := NowTime() - 1050000000
+
+	code := IntToBase36(sec)
+	fmt.Println("TestIntToBase36: ", sec, code)
+
 	micro := NowTimeMicro() - 1040000000000000
 
-	code := IntToBase36(micro)
+	code = IntToBase36(micro)
 	fmt.Println("TestIntToBase36: ", micro, code)
 }
 

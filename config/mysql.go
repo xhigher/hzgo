@@ -6,6 +6,7 @@ type MysqlConfig struct {
 	Host         string `mapstructure:"host" json:"ip" yaml:"host"`
 	Port         int32  `mapstructure:"port" json:"port" yaml:"port"`
 	DbName       string `mapstructure:"db-name" json:"db-name" yaml:"db-name"`
+	Standby bool `mapstructure:"standby" json:"standby" yaml:"standby"`
 	Extras       string `mapstructure:"extras" json:"extras" yaml:"extras"`                         // 数据库名
 	User         string `mapstructure:"user" json:"user" yaml:"user"`                               // 数据库用户名
 	Password     string `mapstructure:"password" json:"password" yaml:"password"`                   // 数据库密码

@@ -14,7 +14,7 @@ var svcUser = SvcUser{
 	name: "svc-user",
 }
 
-func User() SvcUser{
+func User() SvcUser {
 	return svcUser
 }
 

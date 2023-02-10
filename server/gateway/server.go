@@ -6,6 +6,7 @@ import (
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/xhigher/hzgo/config"
+	"github.com/xhigher/hzgo/consts"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/mysql"
 	"github.com/xhigher/hzgo/server/gateway/middlewares"
@@ -48,13 +49,13 @@ func (s *HzgoServer) InitRouter(mgr RouterManager) {
 		}
 		handlers = append(handlers, r.Handler)
 		switch r.Method {
-		case MethodPost:
+		case consts.MethodPost:
 			s.Hz.POST(path, handlers...)
-		case MethodGet:
+		case consts.MethodGet:
 			s.Hz.GET(path, handlers...)
-		case MethodPut:
+		case consts.MethodPut:
 			s.Hz.PUT(path, handlers...)
-		case MethodDelete:
+		case consts.MethodDelete:
 			s.Hz.DELETE(path, handlers...)
 		}
 	}

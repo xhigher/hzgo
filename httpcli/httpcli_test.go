@@ -3,7 +3,7 @@ package httpcli
 import (
 	"github.com/xhigher/hzgo/config"
 	"github.com/xhigher/hzgo/defines"
-	usermodel "github.com/xhigher/hzgo/demo/service/user/model/user"
+	usermodel "github.com/xhigher/hzgo/demo/model/db/user"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/utils"
 	"testing"
@@ -12,8 +12,8 @@ import (
 
 type UserProfileResp struct {
 	Code int `json:"code"`
-	Msg string `json:"msg"`
-	Data *usermodel.UserInfo `json:"data"`
+	Msg string                    `json:"msg"`
+	Data *usermodel.UserInfoModel `json:"data"`
 }
 
 func TestHttpCli_PostJSON(t *testing.T) {

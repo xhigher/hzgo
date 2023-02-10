@@ -3,7 +3,8 @@ package controller
 import (
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
-	model "github.com/xhigher/hzgo/demo/service/user/model/user"
+	"github.com/xhigher/hzgo/demo/service/user/logic"
+	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/resp"
 )
 
@@ -12,13 +13,11 @@ func (ctrl Controller) Profile(ctx context.Context, c *app.RequestContext) {
 	if !ok {
 		return
 	}
-	userInfo, err := model.GetUserById(userid)
-	if err != nil {
-		resp.ReplyErrorInternal(c)
-		return
-	}
-	if userInfo == nil {
-		resp.ReplyErr(c, resp.ErrorUserExisted)
+
+	userInfo, be := logic.GetUser(userid)
+	if be != nil {
+		logger.Errorf("error: %v", be.String())
+		resp.ReplyErr(c, be.ToResp())
 		return
 	}
 

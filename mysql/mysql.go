@@ -41,8 +41,12 @@ func Init(configs []*config.MysqlConfig) {
 			}
 			sqlDB.SetConnMaxIdleTime(time.Minute * 20)
 
-			gormDBs[config.DbName] = db
-			logger.Infof("mysql success, db-name: %s, dsn: %s", config.DbName, config.Dsn())
+			dbName := config.DbName
+			if config.Standby {
+				dbName = dbName + ":standby"
+			}
+			gormDBs[dbName] = db
+			logger.Infof("mysql success, db-name: %s, dsn: %s", dbName, config.Dsn())
 		} else {
 			logger.Errorf("mysql failed, err: %v", err)
 			return
@@ -60,6 +64,13 @@ func gormOptions(dbName string) *gorm.Config {
 
 func DB(dbName string) *gorm.DB {
 	if db, ok := gormDBs[dbName]; ok {
+		return db
+	}
+	return nil
+}
+
+func StandbyDB(dbName string) *gorm.DB {
+	if db, ok := gormDBs[dbName+ ":standby"]; ok {
 		return db
 	}
 	return nil
