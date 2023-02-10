@@ -8,9 +8,11 @@ import (
 )
 
 func SaveToken(uid, token string, et, it int64) (err error) {
+	ts := utils.NowTime()
 	updates := map[string]interface{}{
 		"token": token,
 		"et":    et,
+		"ut":ts,
 	}
 	if it > 0 {
 		updates["it"] = it
@@ -27,6 +29,8 @@ func SaveToken(uid, token string, et, it int64) (err error) {
 			Token:  token,
 			Et:     et,
 			It:     it,
+			Ut: ts,
+
 		}
 		err = admin.DB().Create(data).Error
 		if err != nil {

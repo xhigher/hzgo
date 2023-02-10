@@ -69,7 +69,7 @@ func CreateStaff(username, nickname, phone, email string) (be *bizerr.Error){
 	return
 }
 
-func UpdateStaffRoles(uid string, roles []types.StringArray) (be *bizerr.Error) {
+func UpdateStaffRoles(uid string, roles types.StringArray) (be *bizerr.Error) {
 	staffInfo, err := model.GetStaffByUid(uid)
 	if err != nil {
 		be = bizerr.New(err)

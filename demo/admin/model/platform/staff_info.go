@@ -65,6 +65,7 @@ func (task CreateStaffTask) getTransaction(tx *gorm.DB) (err error) {
 		Avatar:   "",
 		Phone: task.Phone,
 		Email: task.Email,
+		Roles: types.StringArray{},
 		Status:   consts.UserStatusActive,
 		Ut:       ct,
 		Ct:       ct,
@@ -119,7 +120,7 @@ func GetStaffList(status, offset, limit int32) (total int64, data []*admin.Staff
 		return
 	}
 
-	err = admin.DB().Where("status = ?", status).Offset(int(offset)).Limit(int(limit)).First(&data).Error
+	err = admin.DB().Where("status = ?", status).Offset(int(offset)).Limit(int(limit)).Find(&data).Error
 	if err != nil {
 		return
 	}
@@ -134,7 +135,7 @@ func CheckPassword(data *admin.StaffInfoModel, password string) bool {
 	return false
 }
 
-func UpdateStaffRoles(uid string, roles []types.StringArray) (err error){
+func UpdateStaffRoles(uid string, roles types.StringArray) (err error){
 	updates := map[string]interface{}{
 		"roles": roles,
 		"ut": utils.NowTime(),

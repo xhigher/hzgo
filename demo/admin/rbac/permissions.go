@@ -2,7 +2,7 @@ package rbac
 
 import "github.com/xhigher/hzgo/server/admin"
 
-func initPermissions(){
+func InitPermissions(){
 
 	admin.InitRolePermissions(admin.RoleMaintainer, map[string]admin.CRUD{
 		Staff: admin.CRUDAll,

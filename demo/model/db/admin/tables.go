@@ -35,6 +35,7 @@ type StaffTokenModel struct {
 	Token string `json:"token" gorm:"column:token"`
 	Et    int64  `json:"et" gorm:"column:et"`
 	It    int64  `json:"it" gorm:"column:it"`
+	Ut     int64  `json:"ut" gorm:"column:ut"`
 }
 
 func (t *StaffTokenModel) TableName() string {

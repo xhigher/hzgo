@@ -9,6 +9,7 @@ import (
 type Module interface {
 	Name() string
 	Routers() []Router
+	Roles() []string
 }
 
 type PlatformModuleHandler interface {

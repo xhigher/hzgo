@@ -27,7 +27,7 @@ func GetUserList(status, offset, limit int32) (total int64, data []*user.UserInf
 		return
 	}
 
-	err = user.DB().Where("status = ?", status).Offset(int(offset)).Limit(int(limit)).First(&data).Error
+	err = user.DB().Where("status = ?", status).Offset(int(offset)).Limit(int(limit)).Find(&data).Error
 	if err != nil {
 		return
 	}

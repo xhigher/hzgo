@@ -21,6 +21,10 @@ func (md StaffModule) Name() string{
 	return rbac.Staff
 }
 
+func (md StaffModule) Roles() []string{
+	return []string{admin.RoleMaintainer}
+}
+
 func (md StaffModule) Routers() []admin.Router{
 	return []admin.Router{
 		{
@@ -116,6 +120,14 @@ func (md StaffModule) Create(ctx context.Context, c *app.RequestContext){
 		resp.ReplyErrorParam(c)
 		return
 	}
+	if len(params.Username) <4 || len(params.Username) > 30 {
+		resp.ReplyErrorParam2(c, "username")
+		return
+	}
+	if len(params.Phone) != 11 {
+		resp.ReplyErrorParam2(c, "phone")
+		return
+	}
 
 	be := logic.CreateStaff(params.Username, params.Nickname, params.Phone, params.Email)
 	if be != nil {
@@ -154,12 +166,16 @@ func (md StaffModule) ResetPassword(ctx context.Context, c *app.RequestContext){
 
 type UpdateRolesReq struct {
 	Uid string                `json:"uid"`
-	Roles []types.StringArray `json:"roles"`
+	Roles types.StringArray `json:"roles"`
 }
 
 func (md StaffModule) UpdateRoles(ctx context.Context, c *app.RequestContext) {
 	params := UpdateRolesReq{}
 	if err := c.Bind(&params); err != nil {
+		resp.ReplyErrorParam(c)
+		return
+	}
+	if !admin.CheckRoles(params.Roles){
 		resp.ReplyErrorParam(c)
 		return
 	}

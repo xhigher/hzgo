@@ -1,0 +1,513 @@
+{
+	"info": {
+		"_postman_id": "7632bb7c-4f3b-420f-96e8-3861f89ca9ef",
+		"name": "New Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "3243866"
+	},
+	"item": [
+		{
+			"name": "user/register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"xhigher3\",\r\n    \"password\":\"123123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/gw-user/v1/register",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"gw-user",
+						"v1",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "user/login",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-BaseParams",
+						"value": "eyJhcHAiOiJjb20ueGhpZ2hlci5oemdvIiwiYXYiOiIxLjIuMyIsImR0IjoxLCJiZCI6IkhVQVdFSSIsIm1kIjoibWF0ZSA0MCIsIm9zIjoiMTEuMTEiLCJkaWQiOiIxMjEzMTMxMzEzMTMxMyIsIm50IjoxLCJjaCI6IndlaXhpbiIsInNpZ24iOiJmZGE1YWQxNGNiZDE4NzEwMzY5Mjc2ODg1NGJmNGVhOSIsInRzIjoxNjc1NjY0MTEzfQ==",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"xhigher2\",\r\n    \"password\":\"123123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/gw-user/v1/login",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"gw-user",
+						"v1",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "admin/platform/login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"admin\",\r\n    \"password\":\"be8eb6a40960297024df0ab92f30d4af\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:10000/platform/v1/login",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "10000",
+					"path": [
+						"platform",
+						"v1",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "admin/platform/login2",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"xhigher\",\r\n    \"password\":\"83f2ef2e084ba063dbbcf3ac8fd2a65a\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:10000/platform/v1/login",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "10000",
+					"path": [
+						"platform",
+						"v1",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "user/profile",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiNjhjNmxjc21rcSJdLCJleHAiOjE2NzU2Nzc2OTUsImlhdCI6MTY3NTY3MDQ5NSwianRpIjoiMzM0Zjg4YzZiOWQ2YjI0MjBjODI5ZjBjMjQ4YzQ4NmUifQ.bz7agwSza940hO0EmB_5xWjC0zywqC4OJPi0fIT-JoY",
+						"type": "text"
+					},
+					{
+						"key": "X-BaseParams",
+						"value": "eyJhcHAiOiJjb20ueGhpZ2hlci5oemdvIiwiYXYiOiIxLjIuMyIsImR0IjoxLCJiZCI6IkhVQVdFSSIsIm1kIjoibWF0ZSA0MCIsIm9zIjoiMTEuMTEiLCJkaWQiOiIxMjEzMTMxMzEzMTMxMyIsIm50IjoxLCJjaCI6IndlaXhpbiIsInNpZ24iOiJmZGE1YWQxNGNiZDE4NzEwMzY5Mjc2ODg1NGJmNGVhOSIsInRzIjoxNjc1NjY0MTEzfQ==",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/gw-user/v1/profile",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"gw-user",
+						"v1",
+						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "admin/platform/profile",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhY29hcmMiLCJhdWQiOlsibWFpbnRhaW5lciJdLCJleHAiOjE2NzYwMjc2OTEsImlhdCI6MTY3NjAyMDQ5MSwianRpIjoiODFlNDc0NGQwMDg5YzkzYWM4OTcwNzNhZTUwYTQzYmQifQ.toIOzMsQusWfhndI2Itnh63QDpPfCPKOZEtIDYT8RJ4",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:10000/platform/v1/profile",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "10000",
+					"path": [
+						"platform",
+						"v1",
+						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "admin/staff/list",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhY3B3ZTciLCJhdWQiOlsib3BlcmF0b3IiXSwiZXhwIjoxNjc2MDM5NjE5LCJpYXQiOjE2NzYwMzI0MTksImp0aSI6ImUzZjZjMGM3NzQ1MzRiNTJjNTc4MmVlMTM1MTRhYzYzIn0.-9wfIMglrm2Ip5-_R3t-rk4gIvEgqZbGyR6p7fe7cbI",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"limit\":10,\r\n    \"status\":1\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:10000/staff/v1/list",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "10000",
+					"path": [
+						"staff",
+						"v1",
+						"list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "admin/staff/info",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhY29hcmMiLCJhdWQiOlsibWFpbnRhaW5lciJdLCJleHAiOjE2NzYwMjc2OTEsImlhdCI6MTY3NjAyMDQ5MSwianRpIjoiODFlNDc0NGQwMDg5YzkzYWM4OTcwNzNhZTUwYTQzYmQifQ.toIOzMsQusWfhndI2Itnh63QDpPfCPKOZEtIDYT8RJ4",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"uid\":\"1111\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:10000/staff/v1/info",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "10000",
+					"path": [
+						"staff",
+						"v1",
+						"info"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "admin/staff/create",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhY29hcmMiLCJhdWQiOlsibWFpbnRhaW5lciJdLCJleHAiOjE2NzYwMjc2OTEsImlhdCI6MTY3NjAyMDQ5MSwianRpIjoiODFlNDc0NGQwMDg5YzkzYWM4OTcwNzNhZTUwYTQzYmQifQ.toIOzMsQusWfhndI2Itnh63QDpPfCPKOZEtIDYT8RJ4",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"xhigher\",\r\n    \"nickname\":\"xhigher\",\r\n    \"phone\":\"13715333888\",\r\n    \"email\":\"\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:10000/staff/v1/create",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "10000",
+					"path": [
+						"staff",
+						"v1",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "admin/staff/update_roles",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhY29hcmMiLCJhdWQiOlsibWFpbnRhaW5lciJdLCJleHAiOjE2NzYwMzUxOTgsImlhdCI6MTY3NjAyNzk5OCwianRpIjoiMTNkYjZjOTE0NTkzOWJiNzAwODI2MGViOTMwMGE2NDcifQ.tS-_JV18K1QyZD-gG4g0uvxDlQfenLMhLXefa2dhumc",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"uid\":\"acpwe7\",\r\n    \"roles\":[\"operator\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:10000/staff/v1/update_roles",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "10000",
+					"path": [
+						"staff",
+						"v1",
+						"update_roles"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "admin/staff/reset_password",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhY29hcmMiLCJhdWQiOlsibWFpbnRhaW5lciJdLCJleHAiOjE2NzYwMjc2OTEsImlhdCI6MTY3NjAyMDQ5MSwianRpIjoiODFlNDc0NGQwMDg5YzkzYWM4OTcwNzNhZTUwYTQzYmQifQ.toIOzMsQusWfhndI2Itnh63QDpPfCPKOZEtIDYT8RJ4",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"xhigher\",\r\n    \"nickname\":\"xhigher\",\r\n    \"phone\":\"13715333888\",\r\n    \"email\":\"\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:10000/staff/v1/reset_password",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "10000",
+					"path": [
+						"staff",
+						"v1",
+						"reset_password"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "svc-user/profile",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userid\":\"68c6lcsmkq\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:9000/svc-user/v1/profile",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "9000",
+					"path": [
+						"svc-user",
+						"v1",
+						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "user/renewal",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NzIzMDY5MzksImlkZW50aXR5IjoieGhpZ2hlciIsIm9yaWdfaWF0IjoxNjcyMzAzMzM5fQ.onK3zjKXGAk4zw6NJlRa6tSNRMizX_RwUFlcYXWFbyo",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/gw-user/v1/renewal",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"gw-user",
+						"v1",
+						"renewal"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -1,5 +1,10 @@
 package admin
 
+import (
+	"github.com/xhigher/hzgo/logger"
+	"github.com/xhigher/hzgo/types"
+)
+
 const (
 	RoleMaintainer = "maintainer" // 超管
 	RoleDeveloper = "developer" // 开发
@@ -77,7 +82,19 @@ func InitRolePermissions(role string, permissions map[string]CRUD){
 
 func getModulePermission(role, module string) CRUD {
 	if ps, ok := rolePermissions[role]; ok {
+		logger.Infof("getModulePermission: %v", ps)
 		return ps[module]
 	}
 	return CRUD{}
+}
+
+func CheckRoles(roles types.StringArray) bool {
+	if len(roles) > 0 {
+		for _, r := range roles {
+			if _,ok := rolePermissions[r]; !ok {
+				return false
+			}
+		}
+	}
+	return true
 }

@@ -20,6 +20,10 @@ func (md UserModule) Name() string{
 	return rbac.BizUser
 }
 
+func (md UserModule) Roles() []string{
+	return []string{admin.RoleMaintainer, admin.RoleOperator}
+}
+
 func (md UserModule) Routers() []admin.Router{
 	return []admin.Router{
 		{
