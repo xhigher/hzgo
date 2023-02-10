@@ -4,7 +4,8 @@ import (
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/xhigher/hzgo/defines"
-	"github.com/xhigher/hzgo/demo/service/user/model"
+	"github.com/xhigher/hzgo/demo/service/user/logic"
+	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/resp"
 )
 
@@ -14,11 +15,13 @@ func (ctrl Controller) TokenCheck(ctx context.Context, c *app.RequestContext) {
 		resp.ReplyErrorParam(c)
 		return
 	}
-	ok, err := model.CheckToken(params.Userid, params.TokenId)
-	if err != nil {
-		resp.ReplyErrorInternal(c)
+	ok, be := logic.CheckToken(params.Userid, params.TokenId)
+	if be != nil {
+		logger.Errorf("error: %v", be.String())
+		resp.ReplyErr(c, be.ToResp())
 		return
 	}
+
 	if !ok {
 		resp.ReplyNOK(c)
 		return
@@ -32,9 +35,11 @@ func (ctrl Controller) TokenUpdate(ctx context.Context, c *app.RequestContext) {
 		resp.ReplyErrorParam(c)
 		return
 	}
-	err := model.SaveToken(params.Audience, params.TokenId, params.ExpiredAt, params.IssuedAt)
-	if err != nil {
-		resp.ReplyErrorInternal(c)
+
+	be := logic.UpdateToken(params.Audience, params.TokenId, params.ExpiredAt, params.IssuedAt)
+	if be != nil {
+		logger.Errorf("error: %v", be.String())
+		resp.ReplyErr(c, be.ToResp())
 		return
 	}
 

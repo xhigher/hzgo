@@ -19,9 +19,9 @@ var (
 
 	ErrorAuthorization = NewMsg(201, "您的账号未登录")
 	ErrorUserNull      = NewMsg(202, "您的账号未注册")
-	ErrorUserExisted   = NewMsg(203, "您的账号已注册")
-	ErrorUserCancel    = NewMsg(204, "您的账号已注销")
-	ErrorUserBlock     = NewMsg(205, "您的账号已封禁")
+	ErrorUserExists   = NewMsg(203, "您的账号已注册")
+	ErrorUserCanceled    = NewMsg(204, "您的账号已注销")
+	ErrorUserBlocked     = NewMsg(205, "您的账号已封禁")
 	ErrorUserLogout    = NewMsg(206, "您的账号被踢出登录")
 )
 

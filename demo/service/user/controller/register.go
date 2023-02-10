@@ -20,6 +20,10 @@ func (ctrl Controller) Register(ctx context.Context, c *app.RequestContext) {
 
 	userid, be := logic.CreateUser(params.Username, params.Password)
 	if be != nil {
+		if be.UserExists() {
+			resp.ReplyErr(c, resp.ErrorUserExists)
+			return
+		}
 		logger.Errorf("error: %v", be.String())
 		resp.ReplyErr(c, be.ToResp())
 		return
