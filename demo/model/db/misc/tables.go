@@ -16,7 +16,9 @@ type ConfigInfoModel struct {
 	Id      string `json:"id" gorm:"column:id"`
 	Name    string `json:"name" gorm:"column:name"`
 	Data    string `json:"data" gorm:"column:data"`
+	Static    bool `json:"static" gorm:"column:static"`
 	Filters string `json:"filters" gorm:"column:filters"`
+	Status    int32 `json:"status" gorm:"column:status"`
 	Ut      int64  `json:"ut" gorm:"column:ut"`
 }
 
@@ -24,12 +26,17 @@ func (t *ConfigInfoModel) TableName() string {
 	return "config_info"
 }
 
-type ConfigItem struct {
+type ConfigInfo struct {
+	Name    string `json:"name" gorm:"column:name"`
+	Data    string `json:"data" gorm:"column:data"`
+}
+
+type ConfigDataItem struct {
 	Key string `json:"key"`
 	Val string `json:"val"`
 }
 
-type ConfigData []ConfigItem
+type ConfigData []ConfigDataItem
 
 func (i *ConfigData) Scan(v interface{}) error {
 	data, ok := v.([]uint8)
@@ -71,4 +78,12 @@ type BannerInfoModel struct {
 
 func (BannerInfoModel) TableName() string {
 	return "banner_info"
+}
+
+type BannerItem struct {
+	Id     int64  `json:"id"`
+	Type   int32  `json:"type"`
+	Name   string `json:"name"`
+	Img    string `json:"img"`
+	Data   string `json:"data"`
 }

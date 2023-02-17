@@ -6,6 +6,7 @@ import (
 	"github.com/cloudwego/hertz/pkg/app/client"
 	"github.com/cloudwego/hertz/pkg/protocol"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
+	"github.com/xhigher/hzgo/srd"
 	urllib "net/url"
 
 	"github.com/xhigher/hzgo/logger"
@@ -30,6 +31,10 @@ func New(timeout time.Duration) *HttpCli{
 		logger.Errorf("http cli new error: %v", err)
 		return nil
 	}
+	if ok,discovery := srd.GetDiscovery(); ok {
+		c.Use(discovery)
+	}
+
 	return &HttpCli{
 		client: c,
 		timeout: timeout,

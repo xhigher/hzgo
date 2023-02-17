@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/xhigher/hzgo/env"
+	"github.com/xhigher/hzgo/srd"
 
 	"github.com/spf13/viper"
 )
@@ -18,6 +19,7 @@ type ServerConfig struct {
 	Sec        *SecConfig     `mapstructure:"sec" json:"sec" yaml:"sec"`
 	Mysql      []*MysqlConfig `mapstructure:"mysql" json:"mysql" yaml:"mysql"`
 	Redis      []*RedisConfig `mapstructure:"redis" json:"redis" yaml:"redis"`
+	Srd *srd.Config `mapstructure:"srd" json:"srd" yaml:"srd"`
 }
 
 var (

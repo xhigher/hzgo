@@ -6,6 +6,7 @@ import (
 	"github.com/xhigher/hzgo/config"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/mysql"
+	"github.com/xhigher/hzgo/srd"
 )
 
 type Server struct {
@@ -16,6 +17,18 @@ type Server struct {
 func NewServer(conf *config.ServerConfig) *Server {
 	logger.Init(conf.Logger)
 	mysql.Init(conf.Mysql)
+
+	if conf.Srd != nil && srd.Init(conf.Srd) {
+		if ok, option := srd.GetRegistry(); ok {
+			return &Server{
+				Hz: server.Default(server.WithHostPorts(conf.Addr),
+					server.WithMaxRequestBodySize(conf.MaxReqSize),
+					option),
+				Conf: conf,
+			}
+		}
+	}
+
 	return &Server{
 		Hz: server.Default(server.WithHostPorts(conf.Addr),
 			server.WithMaxRequestBodySize(conf.MaxReqSize)),

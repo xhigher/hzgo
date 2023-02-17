@@ -75,3 +75,12 @@ type StatusPageReq struct {
 	Offset int32 `form:"offset" json:"offset" query:"offset"`
 	Limit int32  `form:"limit" json:"limit" query:"limit"`
 }
+
+type BannerReq struct {
+	Site string `json:"site"`
+}
+
+type ConfigReq struct {
+	Sum string `json:"sum"`
+	Id string `json:"id"`
+}

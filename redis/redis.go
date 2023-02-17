@@ -17,7 +17,7 @@ func Client(name string) *redis.Client {
 	return clients[name]
 }
 
-func InitRedis(configs []*config.RedisConfig) {
+func Init(configs []*config.RedisConfig) {
 	if len(configs) == 0 {
 		logger.Warnf("redis config nil")
 		return
