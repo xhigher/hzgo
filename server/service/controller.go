@@ -10,10 +10,13 @@ type Controller struct {
 	Name string
 }
 
+func (ctrl Controller) Resp(c *app.RequestContext) *resp.Responder {
+	return &resp.Responder{Ctx: c}
+}
+
 func (ctrl Controller) Userid(c *app.RequestContext) (userid string, ok bool) {
 	params := defines.UseridReq{}
 	if err := c.Bind(&params); err != nil {
-		resp.ReplyErrorParam(c)
 		return
 	}
 	userid = params.Userid

@@ -22,7 +22,7 @@ type CreateUserTask struct {
 	existed  bool
 }
 
-func (task CreateUserTask) Do() (userInfo *user.UserInfoModel, existed bool, err error) {
+func (task *CreateUserTask) Do() (userInfo *user.UserInfoModel, existed bool, err error) {
 	err = user.DB().Transaction(task.getTransaction)
 	if err != nil {
 		logger.Errorf("transaction error %v ", err)
@@ -33,7 +33,7 @@ func (task CreateUserTask) Do() (userInfo *user.UserInfoModel, existed bool, err
 	return
 }
 
-func (task CreateUserTask) getTransaction(tx *gorm.DB) (err error) {
+func (task *CreateUserTask) getTransaction(tx *gorm.DB) (err error) {
 	err = tx.Where("username = ?", task.Username).First(&task.userInfo).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {

@@ -25,3 +25,16 @@ CREATE TABLE `user_token`
     `ut`     bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '更新时间',
     PRIMARY KEY (`userid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户token信息表';
+
+
+CREATE TABLE `trace_log_2023` (
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `module` varchar(50) NOT NULL DEFAULT '',
+  `action` varchar(100) NOT NULL DEFAULT '',
+  `roles` varchar(200) NOT NULL DEFAULT '',
+  `params` text NOT NULL,
+  `result` text NOT NULL,
+  `uid` varchar(20) NOT NULL DEFAULT '',
+  `ts` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;

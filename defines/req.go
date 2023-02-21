@@ -76,6 +76,11 @@ type StatusPageReq struct {
 	Limit int32  `form:"limit" json:"limit" query:"limit"`
 }
 
+type ChangeStatusReq struct {
+	Id string `form:"id" json:"id" query:"id"`
+	Status int32 `form:"status" json:"status" query:"status"`
+}
+
 type BannerReq struct {
 	Site string `json:"site"`
 }

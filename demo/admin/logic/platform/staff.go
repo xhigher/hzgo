@@ -151,3 +151,12 @@ func CleanStaffToken(uid string) (be *bizerr.Error){
 	}
 	return
 }
+
+func GetTraceLogs(uid, module string, offset, limit int32) (total int64, logs []*admin.TraceLogModel, be *bizerr.Error) {
+	total, logs, err := model.GetTraceLogs(uid, module, offset, limit)
+	if err != nil {
+		be = bizerr.New(err)
+		return
+	}
+	return
+}

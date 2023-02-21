@@ -36,15 +36,11 @@ var (
 )
 
 type Claims struct {
-	Subject string
-
-	Audience []string
-
-	ExpiredAt int64
-
-	IssuedAt int64
-
-	TokenId string
+	Subject string `json:"subject"`
+	Audience []string `json:"audience"`
+	ExpiredAt int64 `json:"expired_at"`
+	IssuedAt int64 `json:"issued_at"`
+	TokenId string `json:"token_id"`
 }
 
 type Auth struct {
@@ -88,21 +84,22 @@ func NewAuth(conf *config.JWTConfig) *Auth {
 
 func (mw *Auth) Handler() app.HandlerFunc {
 	return func(ctx context.Context, c *app.RequestContext) {
+		resp := resp.Responder{Ctx: c}
 		claims, err := mw.getClaimsFromToken(ctx, c)
 		if err != nil {
 			logger.Errorf("GetClaimsFromToken error: %v", err)
-			resp.ReplyErrorAuthorization(c)
+			resp.ReplyErrorAuthorization()
 			return
 		}
 		logger.Infof("GetClaimsFromToken claims: %v", claims)
 		if claims.ExpiresAt == nil {
-			resp.ReplyErrorIllegal(c)
+			resp.ReplyErrorIllegal()
 			return
 		}
 
 		if !claims.VerifyExpiresAt(time.Now(), true) {
 			logger.Errorf("VerifyExpiresAt: false")
-			resp.ReplyErrorAuthorization(c)
+			resp.ReplyErrorAuthorization()
 			return
 		}
 
@@ -110,11 +107,11 @@ func (mw *Auth) Handler() app.HandlerFunc {
 			ok, be := mw.CheckTokenFunc(ctx, c, mw.getClaims(claims))
 			if be != nil {
 				logger.Errorf("error: %v", be.String())
-				resp.ReplyErr(c, be.ToResp())
+				resp.ReplyErr(be.ToResp())
 				return
 			}
 			if !ok {
-				resp.ReplyErrorAuthorization(c)
+				resp.ReplyErrorAuthorization()
 				return
 			}
 
@@ -177,7 +174,7 @@ func (mw *Auth) getClaims(claims *jwt.RegisteredClaims) *Claims {
 	}
 }
 
-func (mw *Auth) CreateToken(subject string, audience []string) (tokenValue string, claims *Claims, err error) {
+func (mw *Auth) CreateToken(c *app.RequestContext, subject string, audience []string) (tokenValue string, claims *Claims, err error) {
 	regClaims := &jwt.RegisteredClaims{
 		Issuer:   mw.Issuer,
 		Subject: subject,
@@ -194,10 +191,14 @@ func (mw *Auth) CreateToken(subject string, audience []string) (tokenValue strin
 		return
 	}
 	claims = mw.getClaims(regClaims)
+
+	setSubject(c, regClaims.Subject)
+	setAudience(c, regClaims.Audience)
 	return
 }
 
 func (mw *Auth) RenewalToken(c *app.RequestContext) (tokenValue string, claims *Claims, err error){
+	resp := resp.Responder{Ctx: c}
 	tokenString := GetToken(c)
 	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(t *jwt.Token) (interface{}, error) {
 		if jwt.GetSigningMethod(SigningAlgorithm) != t.Method {
@@ -207,12 +208,12 @@ func (mw *Auth) RenewalToken(c *app.RequestContext) (tokenValue string, claims *
 		return mw.SecretKey, nil
 	})
 	if err != nil {
-		resp.ReplyErrorAuthorization(c)
+		resp.ReplyErrorAuthorization()
 		return
 	}
 	regClaims := token.Claims.(*jwt.RegisteredClaims)
 	if !regClaims.VerifyIssuedAt(time.Now().Add(-mw.MaxRefreshTime), true) {
-		resp.ReplyErrorAuthorization(c)
+		resp.ReplyErrorAuthorization()
 		return
 	}
 

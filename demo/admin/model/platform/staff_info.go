@@ -29,7 +29,7 @@ type CreateStaffTask struct {
 	existed  bool
 }
 
-func (task CreateStaffTask) Do() (staffInfo *admin.StaffInfoModel, existed bool, err error) {
+func (task *CreateStaffTask) Do() (staffInfo *admin.StaffInfoModel, existed bool, err error) {
 	err = admin.DB().Transaction(task.getTransaction)
 	if err != nil {
 		logger.Errorf("transaction error %v ", err)
@@ -40,7 +40,7 @@ func (task CreateStaffTask) Do() (staffInfo *admin.StaffInfoModel, existed bool,
 	return
 }
 
-func (task CreateStaffTask) getTransaction(tx *gorm.DB) (err error) {
+func (task *CreateStaffTask) getTransaction(tx *gorm.DB) (err error) {
 	err = admin.DB().Where("username = ?", task.Username).First(&task.staffInfo).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -95,6 +95,7 @@ func GetStaff(username string) (data *admin.StaffInfoModel, err error) {
 			err = nil
 			return
 		}
+		logger.Errorf("error: %v", err)
 	}
 	return
 }
@@ -107,21 +108,25 @@ func GetStaffByUid(uid string) (data *admin.StaffInfoModel, err error) {
 			err = nil
 			return
 		}
+		logger.Errorf("error: %v", err)
 	}
 	return
 }
 
 func GetStaffList(status, offset, limit int32) (total int64, data []*admin.StaffInfoModel, err error) {
-	err = admin.DB().Model(admin.StaffInfoModel{}).Where("status = ?", status).Count(&total).Error
+	tx := admin.DB().Model(admin.StaffInfoModel{}).Where("status = ?", status).Session(&gorm.Session{})
+	err = tx.Count(&total).Error
 	if err != nil {
+		logger.Errorf("error: %v", err)
 		return
 	}
 	if total == 0 {
 		return
 	}
 
-	err = admin.DB().Where("status = ?", status).Offset(int(offset)).Limit(int(limit)).Find(&data).Error
+	err = tx.Offset(int(offset)).Limit(int(limit)).Find(&data).Error
 	if err != nil {
+		logger.Errorf("error: %v", err)
 		return
 	}
 	return
@@ -142,6 +147,7 @@ func UpdateStaffRoles(uid string, roles types.StringArray) (err error){
 	}
 	err = admin.DB().Model(admin.StaffInfoModel{}).Where("uid = ?", uid).Updates(&updates).Error
 	if err != nil {
+		logger.Errorf("error: %v", err)
 		return
 	}
 	return
@@ -152,8 +158,18 @@ func UpdateStaffStatus(uid string, status int32) (err error){
 		"status": status,
 		"ut": utils.NowTime(),
 	}
-	err = admin.DB().Model(admin.StaffInfoModel{}).Where("uid = ?", uid).Updates(&updates).Error
+	tx := admin.DB().Model(admin.StaffInfoModel{}).Where("uid = ?", uid)
+	if status == consts.UserStatusActive {
+		tx.Where("status=?", consts.UserStatusBlocked)
+	}else if status == consts.UserStatusBlocked {
+		tx.Where("status=?", consts.UserStatusActive)
+	}else{
+		err = fmt.Errorf("status[%d] error", status)
+		return
+	}
+	err = tx.Updates(&updates).Error
 	if err != nil {
+		logger.Errorf("error: %v", err)
 		return
 	}
 	return
@@ -168,6 +184,7 @@ func ResetStaffPassword(uid string, ct int64) (password string, err error){
 	err = admin.DB().Model(admin.StaffInfoModel{}).Where("uid = ?", uid).Updates(&updates).Error
 	if err != nil {
 		password = ""
+		logger.Errorf("error: %v", err)
 		return
 	}
 	return

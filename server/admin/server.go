@@ -40,7 +40,7 @@ func (s *HzgoServer) InitRouters(mgr ModuleManager) {
 			}
 			r.mergeRoles(m.Roles())
 
-			path := fmt.Sprintf("/%s/v%d/%s", m.Name(), r.Version, r.Path)
+			path := r.FullPath(m.Name())
 			handlers := []app.HandlerFunc{
 				s.Auth.Handler(),
 				r.PermissionFunc(m),
@@ -65,7 +65,7 @@ func (s *HzgoServer) initPlatformModuleRouters(mgr ModuleManager){
 		if r.Version == 0 {
 			r.Version = 1
 		}
-		path := fmt.Sprintf("/%s/v%d/%s", m.Name(), r.Version, r.Path)
+		path := r.FullPath(m.Name())
 		handlers := []app.HandlerFunc{
 			s.Auth.Handler(),
 			r.Handler,

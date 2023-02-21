@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/xhigher/hzgo/logger"
+	"github.com/xhigher/hzgo/utils"
 	"net/http"
 )
 
@@ -23,6 +25,7 @@ var (
 	ErrorUserCanceled    = NewMsg(204, "您的账号已注销")
 	ErrorUserBlocked     = NewMsg(205, "您的账号已封禁")
 	ErrorUserLogout    = NewMsg(206, "您的账号被踢出登录")
+
 )
 
 type BaseResp struct {
@@ -64,69 +67,108 @@ func (e BaseResp) GetData(v interface{}) error {
 	return json.Unmarshal(e.Data, &v)
 }
 
-func ReplyOK(ctx *app.RequestContext) {
-	ctx.AbortWithStatusJSON(http.StatusOK, OK)
+type TraceLogSaver interface {
+	AddLog(c *app.RequestContext, resp BaseResp)
 }
 
-func ReplyNOK(ctx *app.RequestContext) {
-	ctx.AbortWithStatusJSON(http.StatusOK, NOK)
+type Responder struct {
+	Ctx *app.RequestContext
+	LogSaver TraceLogSaver
+	LogOut bool
 }
 
-func ReplyErrorInternal(ctx *app.RequestContext) {
-	ctx.AbortWithStatusJSON(http.StatusOK, ErrorInternal)
+func (r Responder) ReplyOK() {
+	r.abortWithJSON(OK)
 }
 
-func ReplyErrorParam(ctx *app.RequestContext) {
-	ctx.AbortWithStatusJSON(http.StatusOK, ErrorParam)
+func (r Responder) ReplyNOK() {
+	r.abortWithJSON(NOK)
 }
 
-func ReplyErrorParam2(ctx *app.RequestContext, msg string) {
-	ctx.AbortWithStatusJSON(http.StatusOK, BaseResp{
+func (r Responder) ReplyErrorInternal() {
+	r.abortWithJSON(ErrorInternal)
+}
+
+func (r Responder) ReplyErrorParam() {
+	r.abortWithJSON(ErrorParam)
+}
+
+func (r Responder) ReplyErrorParam2(msg string) {
+	r.abortWithJSON(BaseResp{
 		Code: ErrorParam.Code,
 		Msg:  fmt.Sprintf("%s:%s", ErrorParam.Msg, msg),
 	})
 }
 
-func ReplyErrorPermission(ctx *app.RequestContext) {
-	ctx.AbortWithStatusJSON(http.StatusOK, ErrorPermission)
+func (r Responder) ReplyErrorPermission() {
+	r.abortWithJSON(ErrorPermission)
 }
 
-func ReplyErrorIllegal(ctx *app.RequestContext) {
-	ctx.AbortWithStatusJSON(http.StatusOK, ErrorIllegal)
+func (r Responder) ReplyErrorIllegal() {
+	r.abortWithJSON(ErrorIllegal)
 }
 
-func ReplyErrorAuthorization(ctx *app.RequestContext) {
-	ctx.AbortWithStatusJSON(http.StatusOK, ErrorAuthorization)
+func (r Responder) ReplyErrorAuthorization() {
+	r.abortWithJSON(ErrorAuthorization)
 }
 
-func ReplyErrMsg(ctx *app.RequestContext, msg string) {
-	ctx.AbortWithStatusJSON(http.StatusOK, BaseResp{
+func (r Responder) ReplyErrorUserNull() {
+	r.abortWithJSON(ErrorUserNull)
+}
+
+func (r Responder) ReplyErrorUserExists() {
+	r.abortWithJSON(ErrorUserExists)
+}
+
+func (r Responder) ReplyErrorUserBlocked() {
+	r.abortWithJSON(ErrorUserBlocked)
+}
+
+func (r Responder) ReplyErrorUserCanceled() {
+	r.abortWithJSON(ErrorUserCanceled)
+}
+
+func (r Responder) ReplyErrMsg(msg string) {
+	r.abortWithJSON(BaseResp{
 		Code: NOK.Code,
 		Msg:  msg,
 	})
 }
 
-func ReplyErr(ctx *app.RequestContext, err BaseResp) {
-	ctx.AbortWithStatusJSON(http.StatusOK, BaseResp{
+func (r Responder) ReplyErr(err BaseResp) {
+	r.abortWithJSON(BaseResp{
 		Code: err.Code,
 		Msg:  err.Msg,
 	})
 }
 
-func ReplyData(ctx *app.RequestContext, data interface{}) {
+func (r Responder) ReplyData(data interface{}) {
 	raw, _ := json.Marshal(data)
-	ctx.AbortWithStatusJSON(http.StatusOK, BaseResp{
+	r.abortWithJSON(BaseResp{
 		Code: OK.Code,
 		Msg:  OK.Msg,
 		Data: raw,
 	})
 }
 
-func Reply(ctx *app.RequestContext, code int32, msg string, data interface{}) {
+func (r Responder) Reply(code int32, msg string, data interface{}) {
 	raw, _ := json.Marshal(data)
-	ctx.AbortWithStatusJSON(http.StatusOK, BaseResp{
+	r.abortWithJSON(BaseResp{
 		Code: code,
 		Msg:  msg,
 		Data: raw,
 	})
+}
+
+
+func (r Responder) abortWithJSON(resp BaseResp){
+	if r.LogOut {
+		params := map[string]interface{}{}
+		r.Ctx.Bind(&params)
+		logger.Infof("path: %v, params: %v, resp: %v", r.Ctx.FullPath(), utils.JSONString(params), utils.JSONString(resp))
+	}
+	if r.LogSaver != nil {
+		r.LogSaver.AddLog(r.Ctx, resp)
+	}
+	r.Ctx.AbortWithStatusJSON(http.StatusOK,resp)
 }

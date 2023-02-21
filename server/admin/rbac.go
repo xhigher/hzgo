@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/types"
 )
 
@@ -82,7 +81,6 @@ func InitRolePermissions(role string, permissions map[string]CRUD){
 
 func getModulePermission(role, module string) CRUD {
 	if ps, ok := rolePermissions[role]; ok {
-		logger.Infof("getModulePermission: %v", ps)
 		return ps[module]
 	}
 	return CRUD{}

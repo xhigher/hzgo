@@ -43,12 +43,14 @@ func (t *StaffTokenModel) TableName() string {
 }
 
 type TraceLogModel struct {
-	Id     int64  `json:"id" xorm:"id" gorm:"column:id"`
-	Method string `json:"method" xorm:"method" gorm:"column:method"`
-	Params string `json:"params" xorm:"params" gorm:"column:params"`
-	Result string `json:"result" xorm:"result" gorm:"column:result"`
-	Uid    string `json:"uid" xorm:"uid" gorm:"column:uid"`
-	Ts     int64  `json:"ts" xorm:"ts" gorm:"column:ts"`
+	Id     int64  `json:"id" gorm:"column:id"`
+	Module string `json:"module" gorm:"column:module"`
+	Action string `json:"action" gorm:"column:action"`
+	Params string `json:"params" gorm:"column:params"`
+	Result string `json:"result" gorm:"column:result"`
+	Roles string `json:"roles" gorm:"column:roles"`
+	Uid    string `json:"uid" gorm:"column:uid"`
+	Ts     int64  `json:"ts" gorm:"column:ts"`
 }
 
 func (TraceLogModel) TableName() string {

@@ -15,20 +15,20 @@ func DB() *gorm.DB {
 type ConfigInfoModel struct {
 	Id      string `json:"id" gorm:"column:id"`
 	Name    string `json:"name" gorm:"column:name"`
-	Data    string `json:"data" gorm:"column:data"`
+	Items    string `json:"items" gorm:"column:items"`
 	Static    bool `json:"static" gorm:"column:static"`
 	Filters string `json:"filters" gorm:"column:filters"`
 	Status    int32 `json:"status" gorm:"column:status"`
 	Ut      int64  `json:"ut" gorm:"column:ut"`
 }
 
-func (t *ConfigInfoModel) TableName() string {
+func (t ConfigInfoModel) TableName() string {
 	return "config_info"
 }
 
 type ConfigInfo struct {
 	Name    string `json:"name" gorm:"column:name"`
-	Data    string `json:"data" gorm:"column:data"`
+	Items    string `json:"items" gorm:"column:items"`
 }
 
 type ConfigDataItem struct {

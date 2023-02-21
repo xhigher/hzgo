@@ -8,7 +8,6 @@ import (
 	logic "github.com/xhigher/hzgo/demo/admin/logic/platform"
 	"github.com/xhigher/hzgo/demo/admin/rbac"
 	"github.com/xhigher/hzgo/logger"
-	"github.com/xhigher/hzgo/resp"
 	"github.com/xhigher/hzgo/server/admin"
 	"github.com/xhigher/hzgo/types"
 )
@@ -57,6 +56,11 @@ func (md StaffModule) Routers() []admin.Router{
 			Path:    "change_status",
 			Handler: md.ChangeStatus,
 		},
+		{
+			Method:  consts.MethodGet,
+			Path:    "trace_logs",
+			Handler: md.TraceLogs,
+		},
 	}
 }
 
@@ -65,41 +69,43 @@ type UidReq struct {
 }
 
 func (md StaffModule) Info(ctx context.Context, c *app.RequestContext) {
+	resp := md.ctrl.Resp(c)
 	params := UidReq{}
 	if err := c.Bind(&params); err != nil {
-		resp.ReplyErrorParam(c)
+		resp.ReplyErrorParam()
 		return
 	}
 
 	staffInfo, be := logic.GetStaff(params.Uid)
 	if be != nil {
 		logger.Errorf("error: %v", be.String())
-		resp.ReplyErr(c, be.ToResp())
+		resp.ReplyErr(be.ToResp())
 		return
 	}
 
-	resp.ReplyData(c, staffInfo)
+	resp.ReplyData(staffInfo)
 }
 
 func (md StaffModule) List(ctx context.Context, c *app.RequestContext) {
+	resp := md.ctrl.Resp(c)
 	params := defines.StatusPageReq{}
 	if err := c.Bind(&params); err != nil {
-		resp.ReplyErrorParam(c)
+		resp.ReplyErrorParam()
 		return
 	}
 	if !defines.CheckPageLimit(params.Limit) {
-		resp.ReplyErrorParam2(c, "limit")
+		resp.ReplyErrorParam2("limit")
 		return
 	}
 
 	total, staffList, be := logic.GetStaffList(params.Status, params.Offset, params.Limit)
 	if be != nil {
 		logger.Errorf("error: %v", be.String())
-		resp.ReplyErr(c, be.ToResp())
+		resp.ReplyErr(be.ToResp())
 		return
 	}
 
-	resp.ReplyData(c, defines.PageData{
+	resp.ReplyData(defines.PageData{
 		Total: int32(total),
 		Offset: params.Offset,
 		Limit: params.Limit,
@@ -115,28 +121,29 @@ type CreateReq struct {
 }
 
 func (md StaffModule) Create(ctx context.Context, c *app.RequestContext){
+	resp := md.ctrl.Resp(c)
 	params := CreateReq{}
 	if err := c.Bind(&params); err != nil {
-		resp.ReplyErrorParam(c)
+		resp.ReplyErrorParam()
 		return
 	}
 	if len(params.Username) <4 || len(params.Username) > 30 {
-		resp.ReplyErrorParam2(c, "username")
+		resp.ReplyErrorParam2("username")
 		return
 	}
 	if len(params.Phone) != 11 {
-		resp.ReplyErrorParam2(c, "phone")
+		resp.ReplyErrorParam2("phone")
 		return
 	}
 
 	be := logic.CreateStaff(params.Username, params.Nickname, params.Phone, params.Email)
 	if be != nil {
 		logger.Errorf("error: %v", be.String())
-		resp.ReplyErr(c, be.ToResp())
+		resp.ReplyErr(be.ToResp())
 		return
 	}
 
-	resp.ReplyOK(c)
+	resp.ReplyOK()
 }
 
 type ResetPasswordData struct {
@@ -145,20 +152,21 @@ type ResetPasswordData struct {
 }
 
 func (md StaffModule) ResetPassword(ctx context.Context, c *app.RequestContext){
+	resp := md.ctrl.Resp(c)
 	params := UidReq{}
 	if err := c.Bind(&params); err != nil {
-		resp.ReplyErrorParam(c)
+		resp.ReplyErrorParam()
 		return
 	}
 
 	password, be := logic.ResetStaffPassword(params.Uid)
 	if be != nil {
 		logger.Errorf("error: %v", be.String())
-		resp.ReplyErr(c, be.ToResp())
+		resp.ReplyErr(be.ToResp())
 		return
 	}
 
-	resp.ReplyData(c, ResetPasswordData{
+	resp.ReplyData(ResetPasswordData{
 		Uid: params.Uid,
 		Password: password,
 	})
@@ -170,24 +178,25 @@ type UpdateRolesReq struct {
 }
 
 func (md StaffModule) UpdateRoles(ctx context.Context, c *app.RequestContext) {
+	resp := md.ctrl.Resp(c)
 	params := UpdateRolesReq{}
 	if err := c.Bind(&params); err != nil {
-		resp.ReplyErrorParam(c)
+		resp.ReplyErrorParam()
 		return
 	}
 	if !admin.CheckRoles(params.Roles){
-		resp.ReplyErrorParam(c)
+		resp.ReplyErrorParam()
 		return
 	}
 
 	be := logic.UpdateStaffRoles(params.Uid, params.Roles)
 	if be != nil {
 		logger.Errorf("error: %v", be.String())
-		resp.ReplyErr(c, be.ToResp())
+		resp.ReplyErr(be.ToResp())
 		return
 	}
 
-	resp.ReplyOK(c)
+	resp.ReplyOK()
 }
 
 type ChangeStatusReq struct {
@@ -196,23 +205,59 @@ type ChangeStatusReq struct {
 }
 
 func (md StaffModule) ChangeStatus(ctx context.Context, c *app.RequestContext) {
+	resp := md.ctrl.Resp(c)
 	params := ChangeStatusReq{}
 	if err := c.Bind(&params); err != nil {
-		resp.ReplyErrorParam(c)
+		resp.ReplyErrorParam()
 		return
 	}
+
 	myUid := md.ctrl.Uid(c)
 	if myUid == params.Uid {
-		resp.ReplyNOK(c)
+		resp.ReplyNOK()
 		return
 	}
 
 	be := logic.UpdateStaffStatus(params.Uid, params.Status)
 	if be != nil {
 		logger.Errorf("error: %v", be.String())
-		resp.ReplyErr(c, be.ToResp())
+		resp.ReplyErr(be.ToResp())
 		return
 	}
 
-	resp.ReplyOK(c)
+	resp.ReplyOK()
+}
+
+type TraceLogPageReq struct {
+	Uid string `form:"uid" json:"uid" query:"uid"`
+	Module string `form:"module" json:"module" query:"module"`
+	Offset int32 `form:"offset" json:"offset" query:"offset"`
+	Limit int32  `form:"limit" json:"limit" query:"limit"`
+}
+
+func (md StaffModule) TraceLogs(ctx context.Context, c *app.RequestContext) {
+	resp := md.ctrl.Resp(c)
+	params := TraceLogPageReq{}
+	if err := c.Bind(&params); err != nil {
+		resp.ReplyErrorParam()
+		return
+	}
+	if !defines.CheckPageLimit(params.Limit) {
+		resp.ReplyErrorParam2("limit")
+		return
+	}
+
+	total, logs, be := logic.GetTraceLogs(params.Uid, params.Module, params.Offset, params.Limit)
+	if be != nil {
+		logger.Errorf("error: %v", be.String())
+		resp.ReplyErr(be.ToResp())
+		return
+	}
+
+	resp.ReplyData(defines.PageData{
+		Total: int32(total),
+		Offset: params.Offset,
+		Limit: params.Limit,
+		Data: logs,
+	})
 }

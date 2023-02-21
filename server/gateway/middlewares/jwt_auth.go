@@ -35,15 +35,11 @@ var (
 )
 
 type AuthClaims struct {
-	Subject string
-
-	Audience string
-
-	ExpiredAt int64
-
-	IssuedAt int64
-
-	TokenId string
+	Subject string `json:"subject"`
+	Audience string `json:"audience"`
+	ExpiredAt int64 `json:"expired_at"`
+	IssuedAt int64 `json:"issued_at"`
+	TokenId string `json:"token_id"`
 }
 
 type JWTAuth struct {
