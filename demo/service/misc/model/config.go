@@ -17,14 +17,14 @@ func getConfigListSum(ids []string, data map[string]*misc.ConfigInfo) string {
 	strArray := make([]string, len(ids))
 	for i,id := range ids {
 		item := data[id]
-		strArray[i] = id +":"+item.Name+":"+item.Data
+		strArray[i] = id +":"+item.Name+":"+item.Items
 	}
 	return utils.MD5(strings.Join(strArray, ";"))
 }
 
 func GetConfigList() (sum string, data map[string]*misc.ConfigInfo, err error) {
 	var tempData []*misc.ConfigInfoModel
-	err = user.DB().Model(misc.ConfigInfoModel{}).Select("id,name,data").Where("status=? AND static=?", consts.StatusOnline, consts.YES).Find(&tempData).Error
+	err = user.DB().Model(misc.ConfigInfoModel{}).Select("id,name,items").Where("status=? AND static=?", consts.StatusOnline, consts.YES).Find(&tempData).Error
 	if err != nil {
 		logger.Errorf("error: %v", err)
 		return
@@ -35,7 +35,7 @@ func GetConfigList() (sum string, data map[string]*misc.ConfigInfo, err error) {
 		for i, item := range tempData{
 			data[item.Id] = &misc.ConfigInfo{
 				Name: item.Name,
-				Data: item.Data,
+				Items: item.Items,
 			}
 			ids[i] = item.Id
 		}
@@ -45,13 +45,14 @@ func GetConfigList() (sum string, data map[string]*misc.ConfigInfo, err error) {
 }
 
 func GetConfigInfo(id string) (data *misc.ConfigInfoModel, err error) {
-	err = user.DB().Where("id=?", id).First(&data).Error
+	err = user.DB().First(&data, "id=?", id).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			data = nil
 			err = nil
 			return
 		}
+		logger.Errorf("error: %v", err)
 	}
 	return
 }

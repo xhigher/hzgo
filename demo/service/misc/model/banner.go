@@ -28,12 +28,3 @@ func GetAllBannerList() (data map[string][]*misc.BannerItem, err error) {
 	}
 	return
 }
-
-func GetSiteBannerList() (data []*misc.BannerItem, err error) {
-	err = user.DB().Model(misc.BannerInfoModel{}).Where("status=?", consts.StatusOnline).Order("sn DESC").Find(&data).Error
-	if err != nil {
-		logger.Errorf("error: %v", err)
-		return
-	}
-	return
-}

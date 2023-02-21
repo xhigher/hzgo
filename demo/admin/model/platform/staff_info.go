@@ -32,7 +32,7 @@ type CreateStaffTask struct {
 func (task *CreateStaffTask) Do() (staffInfo *admin.StaffInfoModel, existed bool, err error) {
 	err = admin.DB().Transaction(task.getTransaction)
 	if err != nil {
-		logger.Errorf("transaction error %v ", err)
+		logger.Errorf("error %v ", err)
 		return
 	}
 	staffInfo = task.staffInfo
@@ -41,12 +41,13 @@ func (task *CreateStaffTask) Do() (staffInfo *admin.StaffInfoModel, existed bool
 }
 
 func (task *CreateStaffTask) getTransaction(tx *gorm.DB) (err error) {
-	err = admin.DB().Where("username = ?", task.Username).First(&task.staffInfo).Error
+	err = admin.DB().First(&task.staffInfo, "username = ?", task.Username).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			task.staffInfo = nil
 			err = nil
 		} else {
+			logger.Errorf("error: %v", err)
 			return
 		}
 	}
@@ -77,10 +78,12 @@ func (task *CreateStaffTask) getTransaction(tx *gorm.DB) (err error) {
 			task.staffInfo.Uid = createUserid()
 			err = tx.Create(task.staffInfo).Error
 			if err != nil {
+				logger.Errorf("error: %v", err)
 				task.staffInfo = nil
 				return
 			}
 		} else {
+			logger.Errorf("error: %v", err)
 			task.staffInfo = nil
 		}
 	}
@@ -88,7 +91,7 @@ func (task *CreateStaffTask) getTransaction(tx *gorm.DB) (err error) {
 }
 
 func GetStaff(username string) (data *admin.StaffInfoModel, err error) {
-	err = admin.DB().Where("username = ?", username).First(&data).Error
+	err = admin.DB().First(&data,"username = ?", username).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			data = nil
@@ -101,7 +104,7 @@ func GetStaff(username string) (data *admin.StaffInfoModel, err error) {
 }
 
 func GetStaffByUid(uid string) (data *admin.StaffInfoModel, err error) {
-	err = admin.DB().Where("uid = ?", uid).First(&data).Error
+	err = admin.DB().First(&data,"uid = ?", uid).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			data = nil

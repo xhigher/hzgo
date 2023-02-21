@@ -25,7 +25,7 @@ type CreateUserTask struct {
 func (task *CreateUserTask) Do() (userInfo *user.UserInfoModel, existed bool, err error) {
 	err = user.DB().Transaction(task.getTransaction)
 	if err != nil {
-		logger.Errorf("transaction error %v ", err)
+		logger.Errorf("error %v ", err)
 		return
 	}
 	userInfo = task.userInfo
@@ -34,12 +34,13 @@ func (task *CreateUserTask) Do() (userInfo *user.UserInfoModel, existed bool, er
 }
 
 func (task *CreateUserTask) getTransaction(tx *gorm.DB) (err error) {
-	err = tx.Where("username = ?", task.Username).First(&task.userInfo).Error
+	err = tx.First(&task.userInfo, "username = ?", task.Username).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			task.userInfo = nil
 			err = nil
 		} else {
+			logger.Errorf("error: %v", err)
 			return
 		}
 	}
@@ -69,10 +70,12 @@ func (task *CreateUserTask) getTransaction(tx *gorm.DB) (err error) {
 			task.userInfo.Userid = createUserid()
 			err = tx.Create(task.userInfo).Error
 			if err != nil {
+				logger.Errorf("error: %v", err)
 				task.userInfo = nil
 				return
 			}
 		} else {
+			logger.Errorf("error: %v", err)
 			task.userInfo = nil
 		}
 	}
@@ -80,13 +83,14 @@ func (task *CreateUserTask) getTransaction(tx *gorm.DB) (err error) {
 }
 
 func GetUser(username string) (data *user.UserInfoModel, err error) {
-	err = user.DB().Where("username = ?", username).First(&data).Error
+	err = user.DB().First(&data,"username = ?", username).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			data = nil
 			err = nil
 			return
 		}
+		logger.Errorf("error: %v", err)
 	}
 	return
 }
@@ -100,25 +104,15 @@ func CheckPassword(data *user.UserInfoModel, password string) bool {
 }
 
 func GetUserById(userid string) (data *user.UserInfoModel, err error) {
-	err = user.DB().Where("userid = ?", userid).First(&data).Error
+	err = user.DB().First(&data, "userid = ?", userid).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			data = nil
 			err = nil
 			return
 		}
+		logger.Errorf("error: %v", err)
 	}
 	return
 }
 
-func GetUserByIcode(icode string) (data *user.UserInfoModel, err error) {
-	err = user.DB().Where("icode = ?", icode).First(&data).Error
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			data = nil
-			err = nil
-			return
-		}
-	}
-	return
-}

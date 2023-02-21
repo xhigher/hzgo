@@ -20,7 +20,7 @@ func SaveToken(uid, token string, et, it int64) (err error) {
 	res := admin.DB().Model(&admin.StaffTokenModel{}).Where("uid = ?", uid).Updates(updates)
 	err = res.Error
 	if err != nil {
-		logger.Errorf("SaveToken update error: %v", err)
+		logger.Errorf("error: %v", err)
 		return
 	}
 	if res.RowsAffected == 0 {
@@ -34,7 +34,7 @@ func SaveToken(uid, token string, et, it int64) (err error) {
 		}
 		err = admin.DB().Create(data).Error
 		if err != nil {
-			logger.Errorf("SaveToken create error: %v", err)
+			logger.Errorf("error: %v", err)
 			return
 		}
 	}
@@ -43,12 +43,12 @@ func SaveToken(uid, token string, et, it int64) (err error) {
 
 func CheckToken(uid, token string) (bool, error) {
 	data := &admin.StaffTokenModel{}
-	err := admin.DB().Where("uid = ?", uid).First(data).Error
+	err := admin.DB().First(data, "uid = ?", uid).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return false, nil
 		}
-		logger.Errorf("CheckToken error: %v", err)
+		logger.Errorf("error: %v", err)
 		return false, err
 	}
 	if data.Token != token {

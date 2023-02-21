@@ -18,6 +18,10 @@ func AddTraceLog(module, action string, params, result interface{}, roles []stri
 		Ts: utils.NowTime(),
 	}
 	err = admin.DB().Create(model).Error
+	if err != nil {
+		logger.Errorf("error: %v", err)
+		return
+	}
 	return
 }
 

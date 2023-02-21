@@ -79,6 +79,7 @@ func GetConfigList(status, offset, limit int32) (total int64, data []*misc.Confi
 
 	err = tx.Offset(int(offset)).Limit(int(limit)).Find(&data).Error
 	if err != nil {
+		logger.Errorf("error: %v", err)
 		return
 	}
 	return

@@ -10,7 +10,7 @@ import (
 )
 
 func GetUserInfo(userid string) (data *user.UserInfoModel, err error) {
-	err = user.DB().Where("userid = ?", userid).First(&data).Error
+	err = user.DB().First(&data, "userid = ?", userid).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			data = nil

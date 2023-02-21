@@ -17,23 +17,24 @@ func SaveToken(userid, token string, et, it int64) (err error) {
 	if it > 0 {
 		updates["it"] = it
 	}
-	res := user.DB().Model(&user.UserTokenModel{}).Where("userid = ?", userid).Updates(updates)
+	model := &user.UserTokenModel{}
+	res := user.DB().Model(model).Where("userid = ?", userid).Updates(updates)
 	err = res.Error
 	if err != nil {
-		logger.Errorf("SaveToken update error: %v", err)
+		logger.Errorf("error: %v", err)
 		return
 	}
 	if res.RowsAffected == 0 {
-		data := &user.UserTokenModel{
+		model = &user.UserTokenModel{
 			Userid: userid,
 			Token:  token,
 			Et:     et,
 			It:     it,
 			Ut: ts,
 		}
-		err = user.DB().Create(data).Error
+		err = user.DB().Create(model).Error
 		if err != nil {
-			logger.Errorf("SaveToken create error: %v", err)
+			logger.Errorf("error: %v", err)
 			return
 		}
 	}
@@ -42,12 +43,12 @@ func SaveToken(userid, token string, et, it int64) (err error) {
 
 func CheckToken(userid, token string) (bool, error) {
 	data := &user.UserTokenModel{}
-	err := user.DB().Where("userid = ?", userid).First(data).Error
+	err := user.DB().First(data,"userid = ?", userid).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return false, nil
 		}
-		logger.Errorf("CheckToken error: %v", err)
+		logger.Errorf("error: %v", err)
 		return false, err
 	}
 	if data.Token != token {
