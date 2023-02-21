@@ -41,22 +41,24 @@ func SaveToken(userid, token string, et, it int64) (err error) {
 	return
 }
 
-func CheckToken(userid, token string) (bool, error) {
+func CheckToken(userid, token string) (ok bool, err error) {
 	data := &user.UserTokenModel{}
-	err := user.DB().First(data,"userid = ?", userid).Error
+	err = user.DB().First(data,"userid = ?", userid).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return false, nil
+			err = nil
+			return
 		}
 		logger.Errorf("error: %v", err)
-		return false, err
+		return
 	}
 	if data.Token != token {
-		return false, nil
+		return
 	}
 	nt := utils.NowTime()
 	if data.Et < nt {
-		return false, nil
+		return
 	}
-	return true, nil
+	ok = true
+	return
 }
