@@ -1,5 +1,7 @@
 package defines
 
+import "strconv"
+
 type AppLoc struct {
 	Lat  float64 `json:"lat,omitempty"`
 	Lng  float64 `json:"lng,omitempty"`
@@ -77,7 +79,7 @@ type StatusPageReq struct {
 }
 
 type ChangeStatusReq struct {
-	Id string `form:"id" json:"id" query:"id"`
+	CommonIdReq
 	Status int32 `form:"status" json:"status" query:"status"`
 }
 
@@ -88,4 +90,18 @@ type BannerReq struct {
 type ConfigReq struct {
 	Sum string `json:"sum"`
 	Id string `json:"id"`
+}
+
+type CommonIdReq struct {
+	Id string `form:"id" json:"id" query:"id"`
+}
+
+func (r CommonIdReq) IntId() int32 {
+	i, _ := strconv.Atoi(r.Id)
+	return int32(i)
+}
+
+func (r CommonIdReq) Int64Id() int64 {
+	i, _ := strconv.Atoi(r.Id)
+	return int64(i)
 }

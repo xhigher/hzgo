@@ -41,6 +41,14 @@ func SetConfigOffline(id string)(be *bizerr.Error) {
 	return
 }
 
+func DeleteConfigInfo(id string)(be *bizerr.Error) {
+	err := model.DeleteConfigInfo(id)
+	if err != nil {
+		be = bizerr.New(err)
+		return
+	}
+	return
+}
 
 func GetConfigInfo(id string) (data *misc.ConfigInfoModel, be *bizerr.Error) {
 	data, err := model.GetConfigInfo(id)

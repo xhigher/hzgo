@@ -64,7 +64,7 @@ func (i ConfigData) Value() (driver.Value, error) {
 }
 
 type BannerInfoModel struct {
-	Id     int64  `json:"id" gorm:"column:id"`
+	Id     int32  `json:"id" gorm:"column:id"`
 	Site   string `json:"site" gorm:"column:site"`
 	Type   int32  `json:"type" gorm:"column:type"`
 	Name   string `json:"name" gorm:"column:name"`
@@ -72,7 +72,6 @@ type BannerInfoModel struct {
 	Data   string `json:"data" gorm:"column:data"`
 	Sn     int64  `json:"sn" gorm:"column:sn"`
 	Status int32  `json:"status" gorm:"column:status"`
-	Ct     int64  `json:"ct" gorm:"column:ct"`
 	Ut     int64  `json:"ut" gorm:"column:ut"`
 }
 
@@ -81,7 +80,7 @@ func (BannerInfoModel) TableName() string {
 }
 
 type BannerItem struct {
-	Id     int64  `json:"id"`
+	Id     int32  `json:"id"`
 	Type   int32  `json:"type"`
 	Name   string `json:"name"`
 	Img    string `json:"img"`
