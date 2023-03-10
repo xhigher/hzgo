@@ -5,21 +5,21 @@ import (
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/xhigher/hzgo/defines"
 	"github.com/xhigher/hzgo/demo/api"
-	"github.com/xhigher/hzgo/resp"
 )
 
 func (ctrl Controller) Register(ctx context.Context, c *app.RequestContext) {
+	resp := ctrl.Resp(c)
 	params := defines.RegisterReq{}
 	if err := c.Bind(&params); err != nil {
-		resp.ReplyErrorParam(c)
+		resp.ReplyErrorParam()
 		return
 	}
 
 	result := api.User().Register(params)
 	if result.NotOK() {
-		resp.ReplyErr(c, result)
+		resp.ReplyErr(result)
 		return
 	}
 
-	resp.ReplyOK(c)
+	resp.ReplyOK()
 }

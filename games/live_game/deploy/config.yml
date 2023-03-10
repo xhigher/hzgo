@@ -1,0 +1,6 @@
+name: "live-game"
+addr: 0.0.0.0:8000
+
+logger:
+  filename: /dev/stdout
+

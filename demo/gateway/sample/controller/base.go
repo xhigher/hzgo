@@ -6,7 +6,6 @@ import (
 	"github.com/xhigher/hzgo/consts"
 	"github.com/xhigher/hzgo/defines"
 	"github.com/xhigher/hzgo/demo/api"
-	"github.com/xhigher/hzgo/resp"
 	"github.com/xhigher/hzgo/server/gateway"
 	"github.com/xhigher/hzgo/server/gateway/middlewares"
 )
@@ -60,6 +59,7 @@ func NewWithAuth(name string, auth *middlewares.JWTAuth) Controller {
 }
 
 func (ctrl Controller) Test(ctx context.Context, c *app.RequestContext) {
+	resp := ctrl.Resp(c)
 
-	resp.ReplyOK(c)
+	resp.ReplyOK()
 }

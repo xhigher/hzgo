@@ -6,8 +6,8 @@ import (
 	"github.com/xhigher/hzgo/bizerr"
 	"github.com/xhigher/hzgo/consts"
 	"github.com/xhigher/hzgo/defines"
-	"github.com/xhigher/hzgo/demo/admin/rbac"
 	logic "github.com/xhigher/hzgo/demo/admin/logic/misc"
+	"github.com/xhigher/hzgo/demo/admin/rbac"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/server/admin"
 )

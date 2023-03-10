@@ -5,13 +5,13 @@ import (
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/xhigher/hzgo/defines"
 	"github.com/xhigher/hzgo/demo/api"
-	"github.com/xhigher/hzgo/resp"
 )
 
 func (ctrl Controller) Renewal(ctx context.Context, c *app.RequestContext) {
+	resp := ctrl.Resp(c)
 	token, claims, err := ctrl.Auth.RenewalToken(c)
 	if err != nil {
-		resp.ReplyErrorInternal(c)
+		resp.ReplyErrorInternal()
 		return
 	}
 
@@ -23,11 +23,11 @@ func (ctrl Controller) Renewal(ctx context.Context, c *app.RequestContext) {
 		IssuedAt: claims.IssuedAt,
 	})
 	if result.NotOK() {
-		resp.ReplyErr(c, result)
+		resp.ReplyErr(result)
 		return
 	}
 
-	resp.ReplyData(c, defines.TokenData{
+	resp.ReplyData(defines.TokenData{
 		Token: token,
 		Et:    claims.ExpiredAt,
 	})
