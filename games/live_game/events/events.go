@@ -3,7 +3,7 @@ package events
 const (
 
 	//客户端事件 begin
-	Join = "join"
+	Join = "matching"
 	Ready = "ready"
 
 	CreateBubble = "createBubble"
@@ -20,13 +20,15 @@ const (
 	LoginSuccess = "loginSuccess"
 
 	JoinError = "joinError"
-	JoinSuccess = "joinSuccess"
+	JoinSuccess = "matching"
 
 	LoadProcess = "loadProcess"
 	GameReady = "gameReady"
 	GameStart = "gameStart"
 	GameOver = "gameOver"
 	exitRoom = "exitRoom"
+
+	bubbleBomb = "bomb"
 
 )
 

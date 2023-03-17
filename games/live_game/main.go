@@ -12,6 +12,6 @@ func main() {
 	conf := config.GetConfig()
 
 	svr := ws.NewServer(conf, logic.NewHandler())
-	logic.StartMatch()
+	logic.StartEngine()
 	svr.Start()
 }

@@ -25,26 +25,27 @@ type Room struct {
 	et int64
 	winner int
 	aliveNum int
-	map2 maps.Map
+	mapData maps.MapData
 	players []*Player
+	robots []*Robot
 	bubbles []*Bubble
 	props []*Prop
 	bubbleId int
 	TickChan chan int
 	context context.Context
 	closeFunc context.CancelFunc
-	loadProcess int
 	tickCount int
+	audiences map[string]*Player
 }
 
-type RoomMsg struct {
+type RoomData struct {
 	Id int `json:"id"`
 	Type int `json:"type"`
 	Status int `json:"status"`
-	Map maps.Map `json:"map"`
-	Players []PlayerMsg `json:"players"`
-	Bubble []BubbleMsg `json:"bubble"`
-	Props []PropMsg `json:"props"`
+	Map maps.MapData `json:"map"`
+	Players []PlayerData `json:"players"`
+	Bubble []BubbleData `json:"bubble"`
+	Props []PropData `json:"props"`
 }
 
 type RoomResult struct {
@@ -53,7 +54,7 @@ type RoomResult struct {
 }
 
 func NewRoom(m *Match, id int, playerCount int) *Room{
-	map2 := maps.GetMap(playerCount)
+	mapData := maps.GetMap(playerCount)
 	r := &Room{
 		id: id,
 		status: Idle,
@@ -61,10 +62,9 @@ func NewRoom(m *Match, id int, playerCount int) *Room{
 		et:0,
 		winner:0,
 		aliveNum: 0,
-		map2: map2,
+		mapData: mapData,
 		bubbleId:0,
 		TickChan:make(chan int, 1),
-		loadProcess:0,
 		tickCount:0,
 	}
 
@@ -85,38 +85,38 @@ func NewRoom(m *Match, id int, playerCount int) *Room{
 	return r
 }
 
-func (r *Room) GetMsg() RoomMsg{
-	return RoomMsg{
+func (r *Room) GetData() RoomData{
+	return RoomData{
 		Id:      r.id,
 		Type:    r.typ,
 		Status:  int(r.status),
-		Map:     r.map2,
-		Players: r.getPlayersMsg(),
-		Bubble:  r.getBubblesMsg(),
-		Props:   r.getPropsMsg(),
+		Map:     r.mapData,
+		Players: r.getPlayersData(),
+		Bubble:  r.getBubblesData(),
+		Props:   r.getPropsData(),
 	}
 }
 
-func (r *Room) getPlayersMsg() []PlayerMsg{
-	var msg []PlayerMsg
+func (r *Room) getPlayersData() []PlayerData{
+	var msg []PlayerData
 	for _, p := range r.players {
-		msg = append(msg, p.GetMsg())
+		msg = append(msg, p.GetData())
 	}
 	return msg
 }
 
-func (r *Room) getBubblesMsg() []BubbleMsg{
-	var msg []BubbleMsg
+func (r *Room) getBubblesData() []BubbleData{
+	var msg []BubbleData
 	for _, b := range r.bubbles {
-		msg = append(msg, b.GetMsg())
+		msg = append(msg, b.GetData())
 	}
 	return msg
 }
 
-func (r *Room) getPropsMsg() []PropMsg{
-	var msg []PropMsg
+func (r *Room) getPropsData() []PropData{
+	var msg []PropData
 	for _, p := range r.props {
-		msg = append(msg, p.GetMsg())
+		msg = append(msg, p.GetData())
 	}
 	return msg
 }
@@ -133,19 +133,25 @@ func (r *Room) HandleTick(){
 func (r *Room) handleLoading(){
 	r.tickCount ++
 	if r.tickCount % 5 == 0 {//500ms
-		r.loadProcess = r.loadProcess + rand.Intn(20)
-		if r.loadProcess > 100 {
-			r.loadProcess = 100
+		loading := 0
+		for _, rb := range r.robots {
+			rb.loadProcess = rb.loadProcess + rand.Intn(20)
+			if rb.loadProcess > 100 {
+				rb.loadProcess = 100
+			}
+			msg := &ws.Message{
+				Event: events.LoadProcess,
+				Data: encodeMsgData(LoadProcessData{
+					Id: r.id,
+					Process: rb.loadProcess,
+				}),
+			}
+			r.BroadcastMsg(msg)
+			if rb.loadProcess >= 100 {
+				loading ++
+			}
 		}
-		msg := &ws.Message{
-			Event: events.LoadProcess,
-			Data: encodeMsgData(LoadProcessData{
-				Id: r.id,
-				Process: r.loadProcess,
-			}),
-		}
-		r.BroadcastMsg(msg)
-		if r.loadProcess >= 100 {
+		if loading == len(r.robots) {
 			r.readyGo()
 		}
 	}
@@ -191,5 +197,44 @@ func (r Room) BroadcastMsg(msg *ws.Message){
 	}
 	for _,p := range r.players {
 		p.SendMsg(msg)
+	}
+	for _,p := range r.audiences {
+		p.SendMsg(msg)
+	}
+}
+
+func (r Room) SendPlayerMsg(p *Player, msg *ws.Message){
+	p.SendMsg(msg)
+	for _,a := range p.room.audiences {
+		a.SendMsg(msg)
+	}
+}
+
+func (r Room) RoundStart(){
+	data := &RoundStartData{
+		RoomId: r.id,
+		Type:    r.typ,
+		Status:  int(r.status),
+		Map:     r.mapData,
+		Users: r.getPlayersData(),
+		Bubbles:  nil,
+		Props:   r.getPropsData(),
+	}
+	msg := &ws.Message{
+		Event: events.GameStart,
+		Data: encodeMsgData(data),
+	}
+
+	r.BroadcastMsg(msg)
+}
+
+func  (r Room) Exit(id string){
+	if _, ok := r.audiences[id]; ok {
+		delete(r.audiences, id)
+	}
+	for _,p := range r.players {
+		if p.id == id {
+			p.status = PlayerExit
+		}
 	}
 }

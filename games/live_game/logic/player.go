@@ -9,13 +9,16 @@ type PlayerStatus int
 const (
 	PlayerActive PlayerStatus = 0
 	PlayerCaught PlayerStatus = 1
-	PlayerDied PlayerStatus = 2
+	PlayerExit PlayerStatus = 2
+	PlayerDied PlayerStatus = 3
+
 )
 
 type Player struct {
 	id string
 	name string
 	avatar string
+	role int
 	room *Room
 	lastSite maps.Site
 	curSite maps.Site
@@ -32,18 +35,19 @@ type Player struct {
 
 }
 
-type PlayerMsg struct {
-	Id string
-	Name string
-	Avatar string
-	RoomId int
-	Site maps.Site
-	Status int
-	StepTime int
+type PlayerData struct {
+	Id string `json:"id"`
+	Name string `json:"name"`
+	Avatar string `json:"avatar"`
+	Role int `json:"role"`
+	RoomId int `json:"room_id"`
+	Site maps.Site `json:"site"`
+	Status int `json:"status"`
+	StepTime int `json:"step_time"`
 }
 
-func (p *Player) GetMsg() PlayerMsg{
-	msg := PlayerMsg{
+func (p *Player) GetData() PlayerData{
+	msg := PlayerData{
 		Id:       p.id,
 		Name:     p.name,
 		Avatar:   p.avatar,
@@ -94,5 +98,25 @@ func (p *Player) CreateBubble() {
 }
 
 func (p *Player) SendMsg(msg *ws.Message) {
-	p.pipe.SendMessage(msg)
+	if p.pipe != nil {
+		p.pipe.SendMessage(msg)
+	}
+}
+
+
+func (p *Player) reset(){
+	p.role = 0
+	p.status = PlayerDied
+	p.room = nil
+	p.bubbleColor = 0
+	p.bubblePower = 1
+	p.bubbleCount = 0
+	p.lastSite = maps.Site{}
+	p.curSite = maps.Site{}
+	p.pinCount = 0
+	p.props = nil
+	p.stepTime = 0
+	p.result = 0
+	p.awards = nil
+	p.pipe = nil
 }

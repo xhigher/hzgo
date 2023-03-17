@@ -11,7 +11,7 @@ type Bubble struct {
 	player *Player
 	ct int64
 }
-type BubbleMsg struct {
+type BubbleData struct {
 	Id int `json:"id"`
 	X int `json:"x"`
 	Y int `json:"y"`
@@ -20,8 +20,8 @@ type BubbleMsg struct {
 	Player string `json:"player"`
 }
 
-func (b Bubble) GetMsg() BubbleMsg {
-	return BubbleMsg{
+func (b Bubble) GetData() BubbleData {
+	return BubbleData{
 		Id:    b.Id,
 		X:     b.site.X,
 		Y:     b.site.X,

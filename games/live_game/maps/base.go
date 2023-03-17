@@ -4,9 +4,9 @@ import (
 	"math/rand"
 )
 
-var maps = map[int]Map{}
+var maps = map[int]MapData{}
 
-type Map struct {
+type MapData struct {
 	Id int `json:"id"`
 	Size Size `json:"size"`
 	TileSize Size `json:"tile_size"`
@@ -28,12 +28,12 @@ type Size struct {
 	Height int `json:"height"`
 }
 
-func GetMap(playerNum int) Map{
+func GetMap(playerNum int) MapData{
 	id := (((playerNum-1) / 2)+1) * 200 + rand.Intn(4)
 	return maps[id]
 }
 
-func addMap(m Map) {
+func addMap(m MapData) {
 	maps[m.Id] = m
 }
 

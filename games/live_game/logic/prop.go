@@ -7,7 +7,7 @@ type Prop struct {
 	Type int
 	RoomId int
 }
-type PropMsg struct {
+type PropData struct {
 	Id int `json:"id"`
 	X int `json:"x"`
 	Y int `json:"y"`
@@ -15,8 +15,8 @@ type PropMsg struct {
 	Room int `json:"room"`
 }
 
-func (p Prop) GetMsg() PropMsg {
-	return PropMsg{
+func (p Prop) GetData() PropData {
+	return PropData{
 		Id:   p.Id,
 		X:    p.X,
 		Y:    p.Y,

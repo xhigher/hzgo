@@ -2,35 +2,23 @@ package logic
 
 import (
 	"context"
-	"github.com/xhigher/hzgo/server/ws"
-	"github.com/xhigher/hzgo/utils"
 	"math"
 	"math/rand"
-	"sync"
 	"time"
 )
 
 type MatchStatus int
 const (
 	MatchWait MatchStatus = 0 //等待到时开始
-	MatchReady MatchStatus = 1 //到时开始，可加入
-	MatchOngoing MatchStatus = 2 //比赛进行中
-	MatchPause MatchStatus = 3 //小局结束，赛中暂停
-	MatchEnd MatchStatus = 4 //结束
+	MatchEnroll MatchStatus = 1 //到时开始，报名阶段
+	MatchReady MatchStatus = 2 //人数已满，分配房间
+	MatchOngoing MatchStatus = 3 //比赛进行中
+	MatchPause MatchStatus = 4 //小局结束，赛中暂停
+	MatchEnd MatchStatus = 5 //结束
 
 	tickerDuration = 100*time.Millisecond
+	readyDuration = 10 *time.Second
 )
-
-var (
-	lock sync.Once
-	defaultMatch *Match
-)
-
-func StartMatch(){
-	lock.Do(func() {
-		defaultMatch = newMatch()
-	})
-}
 
 type MatchConfig struct {
 	Id string `json:"id"`
@@ -44,7 +32,8 @@ type Match struct {
 	playerCount int
 	roomPlayerCount int
 	roundCount int
-	startTime int64
+	startTime time.Time
+	nextTime time.Time
 	curRound int
 	status MatchStatus
 	players []*Player
@@ -94,7 +83,7 @@ func (m *Match) Restart(config *MatchConfig){
 	m.roomPlayerCount = config.RoomPlayerCount
 	m.playerCount = int(math.Pow(float64(config.RoomPlayerCount), float64(config.RoundCount)))
 	m.curRound = 0
-	m.startTime = config.StartTime
+	m.startTime = time.Unix(config.StartTime, 0)
 	m.players = nil
 	m.rooms = nil
 }
@@ -102,8 +91,9 @@ func (m *Match) Restart(config *MatchConfig){
 func (m *Match) HandleTick(){
 	switch m.status {
 	case MatchWait:
-		m.checkReady()
+		m.checkEnroll()
 	case MatchReady:
+		m.checkReady()
 	case MatchOngoing:
 	case MatchPause:
 	case MatchEnd:
@@ -114,31 +104,29 @@ func (m *Match) HandleRoomResult(result *RoomResult) {
 
 }
 
+func (m *Match) checkEnroll(){
+	if time.Now().After(m.startTime) {
+		m.status = MatchEnroll
+	}
+}
+
 func (m *Match) checkReady(){
-	if m.startTime > 0 && m.startTime<=utils.NowTime() {
-		m.status = MatchReady
+	if m.status == MatchReady && time.Now().After(m.nextTime) {
+		m.status = MatchEnroll
+		for _, r := range m.rooms {
+			r.readyGo()
+		}
 	}
 }
 
-func (m *Match) AddPlayer(user *UserInfo, pipe *ws.Pipe) *Player{
-	player := &Player{
-		id: user.Id,
-		name: user.Name,
-		avatar: user.Avatar,
-		pipe: pipe,
-	}
-
-	return player
-}
-
-func (m *Match) JoinUser(player *Player){
+func (m *Match) JoinPlayer(player *Player){
 	if m.status == MatchWait {
 
-	}else if m.status == MatchOngoing || m.status == MatchPause {
+	}else if m.status == MatchReady || m.status == MatchOngoing || m.status == MatchPause {
 
 	}else if m.status == MatchEnd {
 
-	} else if m.status == MatchReady {
+	} else if m.status == MatchEnroll {
 		for _,p := range m.players {
 			if p.id == player.id {
 				return
@@ -146,8 +134,10 @@ func (m *Match) JoinUser(player *Player){
 		}
 		m.players = append(m.players, player)
 		if len(m.players) == m.playerCount {
-			m.status = MatchPause
+			m.status = MatchReady
 			m.curRound ++
+			m.nextTime = time.Now().Add(readyDuration)
+			m.startRound()
 		}
 	}else{
 		return
