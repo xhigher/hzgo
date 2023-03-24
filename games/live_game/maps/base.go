@@ -53,3 +53,24 @@ func Init(){
 	addMap(map602)
 	addMap(map603)
 }
+
+func (m MapData) ExistObstacle(s Site) bool{
+	if m.Obstacles[s.Y] != nil && m.Obstacles[s.Y][s.X]==1 {
+		return true
+	}
+	return false
+}
+
+func (m MapData) ExistBox(s Site) bool{
+	if m.Boxes[s.Y] != nil && m.Boxes[s.Y][s.X]==1 {
+		return true
+	}
+	return false
+}
+
+func (m MapData) IsEmptySite(s Site) bool {
+	if !m.ExistObstacle(s) && !m.ExistBox(s) {
+		return true
+	}
+	return false
+}

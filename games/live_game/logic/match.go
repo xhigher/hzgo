@@ -2,6 +2,10 @@ package logic
 
 import (
 	"context"
+	"github.com/xhigher/hzgo/games/live_game/events"
+	"github.com/xhigher/hzgo/logger"
+	"github.com/xhigher/hzgo/server/ws"
+	"github.com/xhigher/hzgo/utils"
 	"math"
 	"math/rand"
 	"time"
@@ -9,54 +13,45 @@ import (
 
 type MatchStatus int
 const (
-	MatchWait MatchStatus = 0 //等待到时开始
-	MatchEnroll MatchStatus = 1 //到时开始，报名阶段
-	MatchReady MatchStatus = 2 //人数已满，分配房间
+	MatchWaiting MatchStatus = 0 //等待到时开始
+	MatchEnrolling MatchStatus = 1 //到时开始，报名阶段
+	MatchReadying MatchStatus = 2 //分配房间准备中
 	MatchOngoing MatchStatus = 3 //比赛进行中
-	MatchPause MatchStatus = 4 //小局结束，赛中暂停
-	MatchEnd MatchStatus = 5 //结束
-
-	tickerDuration = 100*time.Millisecond
-	readyDuration = 10 *time.Second
+	MatchEnded MatchStatus = 4 //结束
+	readyDuration = 5 *time.Second
+	roundTimeoutDuration = 5*60 *time.Second
 )
 
 type MatchConfig struct {
 	Id string `json:"id"`
 	RoundCount int `json:"round_count"`
 	RoomPlayerCount int `json:"room_player_count"`
-	StartTime int64 `json:"start_time"`
+	StartTime string `json:"start_time"`
+	IntervalHours int64 `json:"interval_hours"`
 }
 
 type Match struct {
-	id string
+	config MatchConfig
 	playerCount int
-	roomPlayerCount int
-	roundCount int
 	startTime time.Time
 	nextTime time.Time
 	curRound int
 	status MatchStatus
 	players []*Player
+	robots map[string]*Robot
 	rooms []*Room
-	ticker *time.Ticker
 	roomContext context.Context
 	resultChan chan *RoomResult
 }
 
-func newMatch() *Match{
+func newMatch(config MatchConfig) *Match{
 	m := &Match{
-		ticker: time.NewTicker(tickerDuration),
+		config: config,
 		resultChan: make(chan *RoomResult, 100),
+		playerCount: int(math.Pow(float64(config.RoomPlayerCount), float64(config.RoundCount))),
+		startTime: utils.ParseYmdhms(config.StartTime),
+		status: MatchWaiting,
 	}
-
-	go func() {
-		for {
-			select {
-			case <-m.ticker.C:
-				m.HandleTick()
-			}
-		}
-	}()
 
 	go func() {
 		for {
@@ -71,32 +66,32 @@ func newMatch() *Match{
 	return m
 }
 
-func (m *Match) Restart(config *MatchConfig){
-	if config == nil {
+func (m *Match) Restart(){
+	if m.status != MatchWaiting {
 		return
 	}
-	if m.status != MatchWait {
+	if m.config.IntervalHours == 0 {
 		return
 	}
-	m.id = config.Id
-	m.roundCount = config.RoundCount
-	m.roomPlayerCount = config.RoomPlayerCount
-	m.playerCount = int(math.Pow(float64(config.RoomPlayerCount), float64(config.RoundCount)))
+
+	m.status= MatchWaiting
 	m.curRound = 0
-	m.startTime = time.Unix(config.StartTime, 0)
+	m.startTime = m.startTime.Add(time.Duration(m.config.IntervalHours) * time.Hour)
 	m.players = nil
 	m.rooms = nil
 }
 
 func (m *Match) HandleTick(){
+	now := time.Now()
+	logger.Infof("HandleTick: %v, %v", m.status, now.Format(utils.TimeFormatYMDHMS))
 	switch m.status {
-	case MatchWait:
-		m.checkEnroll()
-	case MatchReady:
-		m.checkReady()
+	case MatchWaiting:
+		m.checkStarted(now)
+	case MatchReadying:
+		m.checkReady(now)
 	case MatchOngoing:
-	case MatchPause:
-	case MatchEnd:
+		m.handleTimerEvent(now)
+	case MatchEnded:
 	}
 }
 
@@ -104,62 +99,122 @@ func (m *Match) HandleRoomResult(result *RoomResult) {
 
 }
 
-func (m *Match) checkEnroll(){
-	if time.Now().After(m.startTime) {
-		m.status = MatchEnroll
+func (m *Match) checkStarted(now time.Time){
+	logger.Infof("checkStarted: %v, %v", now.Format(utils.TimeFormatYMDHMS),m.startTime.Format(utils.TimeFormatYMDHMS))
+	if now.After(m.startTime) {
+		m.status = MatchEnrolling
 	}
 }
 
-func (m *Match) checkReady(){
-	if m.status == MatchReady && time.Now().After(m.nextTime) {
-		m.status = MatchEnroll
+func (m *Match) checkReady(now time.Time){
+	if m.status == MatchReadying && now.After(m.nextTime) {
+		m.status = MatchOngoing
+		endTime := now.Add(roundTimeoutDuration)
 		for _, r := range m.rooms {
-			r.readyGo()
+			r.ReadyGo(endTime)
 		}
 	}
 }
 
-func (m *Match) JoinPlayer(player *Player){
-	if m.status == MatchWait {
+func (m *Match) handleTimerEvent(now time.Time){
+	if m.status == MatchOngoing {
+		endedCount := 0
+		var winners []*Player
+		for _, r := range m.rooms {
+			if r.IsEnded() {
+				endedCount ++
+				winners = append(winners, r.winner)
+			}
+		}
+		if endedCount == len(m.rooms) {
+			if endedCount == 1 {
+				m.status = MatchEnded
+			}else{
+				m.status = MatchReadying
+				m.players = winners
+				m.nextTime = time.Now().Add(readyDuration)
+				m.startRound()
+			}
+		}
 
-	}else if m.status == MatchReady || m.status == MatchOngoing || m.status == MatchPause {
+		for _, r := range m.rooms {
+			r.handleTimerEvent(now)
+		}
+	}
+}
 
-	}else if m.status == MatchEnd {
+func (m *Match) JoinRobot(robot *Robot) (err error){
+	err = m.JoinPlayer(robot.Player)
+	if err != nil {
+		return
+	}
+	m.robots[robot.id] = robot
+	return
+}
 
-	} else if m.status == MatchEnroll {
+func (m *Match) JoinPlayer(player *Player) (err error){
+	if m.status == MatchWaiting {
+		return errMatchWait
+	}else if m.status == MatchReadying || m.status == MatchOngoing {
+		return errMatchOngoing
+	}else if m.status == MatchEnded {
+		return errMatchEnd
+	} else if m.status == MatchEnrolling {
 		for _,p := range m.players {
 			if p.id == player.id {
-				return
+				return errPlayerJoined
 			}
 		}
 		m.players = append(m.players, player)
+		m.BroadcastMsg(&ws.Message{
+			Event: events.JoinSuccess,
+			Data: encodeMsgData(player.GetData()),
+		})
+
 		if len(m.players) == m.playerCount {
-			m.status = MatchReady
-			m.curRound ++
+			m.status = MatchReadying
 			m.nextTime = time.Now().Add(readyDuration)
 			m.startRound()
 		}
-	}else{
-		return
 	}
+	return nil
 }
 
 func (m *Match) startRound(){
+	m.curRound ++
 	players := m.players
 	rand.Shuffle(len(players), func(i, j int) {
 		players[i], players[j] = players[j], players[i]
 	})
-	roomCount := m.playerCount / m.roomPlayerCount
+	roomCount := m.playerCount / m.config.RoomPlayerCount
 	m.rooms = make([]*Room, roomCount)
 	roomId := m.curRound * 100
 	for i:=0; i<roomCount; i++ {
-		m.rooms[i] = NewRoom(m, roomId+i, m.roomPlayerCount)
-		for j:=i*m.roomPlayerCount; j<(i+1)*m.roomPlayerCount; j++ {
-			m.rooms[i].JoinPlayer(m.players[j])
+		room := NewRoom(roomId+i, m.config.RoomPlayerCount)
+		for j:=i*m.config.RoomPlayerCount; j<(i+1)*m.config.RoomPlayerCount; j++ {
+			player := m.players[j]
+			if player.IsRobot() {
+				room.JoinRobot(m.robots[player.id])
+			}else{
+				room.JoinPlayer(player)
+			}
+		}
+		room.RoundStart()
+		m.rooms[i] = room
+	}
+}
+
+func (m *Match) JoinPlayerRobots(){
+	for {
+		time.Sleep(time.Duration(utils.RandInt64(500, 1500))*time.Millisecond)
+		if err:= m.JoinRobot(GeRobot()); err != nil {
+			return
 		}
 	}
 }
 
-func (m *Match) checkRoundState(){
-
+func (m *Match) BroadcastMsg(msg *ws.Message){
+	for _,p := range m.players {
+		p.SendMsg(msg)
+	}
 }

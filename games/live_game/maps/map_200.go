@@ -1,6 +1,6 @@
 package maps
 
-var map200 = Map{
+var map200 = MapData{
 	Id: 200,
 	Size: Size{
 		Width: 17,

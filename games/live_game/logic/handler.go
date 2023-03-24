@@ -3,7 +3,9 @@ package logic
 import (
 	"errors"
 	"github.com/xhigher/hzgo/games/live_game/events"
+	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/server/ws"
+	"github.com/xhigher/hzgo/utils"
 )
 
 type Handler struct {
@@ -26,6 +28,7 @@ func (h *Handler) HandleMessage(pipe *ws.Pipe, msg *ws.Message) {
 			})
 			return
 		}
+		logger.Infof("HandleMessage event: %v, data: %v", msg.Event, utils.JSONString(msg.Data))
 		switch msg.Event {
 		case events.Join:
 			h.handleJoin(pipe.GetTag(), msg)
@@ -53,12 +56,6 @@ const (
 	errUserNull = 1
 	errTokenInvalid = 2
 )
-
-type UserInfo struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
-	Avatar string `json:"avatar"`
-}
 
 func (h *Handler) handleLogin(pipe *ws.Pipe, msg *ws.Message) {
 	var err error

@@ -2,6 +2,9 @@ package logic
 
 import (
 	"errors"
+	"github.com/xhigher/hzgo/games/live_game/events"
+	"github.com/xhigher/hzgo/games/live_game/model/store"
+	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/server/ws"
 	"github.com/xhigher/hzgo/utils"
 	"go.uber.org/atomic"
@@ -11,6 +14,7 @@ import (
 
 const (
 	userMaxCount = 5000
+	tickerDuration = 500*time.Millisecond
 )
 
 var (
@@ -26,50 +30,66 @@ type Engine struct {
 }
 
 
-func StartEngine(){
+func StartEngine(config MatchConfig){
 	lock.Do(func() {
 		defaultEngine = &Engine{
 			ticker: time.NewTicker(tickerDuration),
 			playerList: sync.Map{},
 			playerCount: atomic.Uint32{},
-			match: newMatch(),
+			match: newMatch(config),
 		}
-		initRobots(10)
+		defaultEngine.startTicker()
+
+		InitPlayerRobots(10)
 	})
 }
 
-func (e *Engine) AddPlayer(user *UserInfo, pipe *ws.Pipe) *Player{
-	player := &Player{
-		id: user.Id,
-		name: user.Name,
-		avatar: user.Avatar,
-		pipe: pipe,
-	}
+func (e *Engine) startTicker(){
+	go func() {
+		for {
+			select {
+			case <-e.ticker.C:
+				e.match.HandleTick()
+			}
+		}
+	}()
+}
 
+func (e *Engine) AddPlayer(player *Player){
+	logger.Infof("AddPlayer: %v", player.GetData())
 	e.playerList.Store(player.id, player)
-
-	return player
 }
 
 func (e *Engine) GetPlayer(id string) *Player{
 	if player, ok := e.playerList.Load(id); ok {
+		logger.Infof("GetPlayer: %v", utils.JSONString(player))
 		return player.(*Player)
 	}
 	return nil
 }
 
 func (e *Engine) DeletePlayer(id string){
+	logger.Infof("DeletePlayer: %v", id)
 	e.playerList.Delete(id)
 }
 
 func (e *Engine) JoinMatch(id string, data *JoinData){
+	logger.Infof("JoinMatch: %v", id)
 	player := e.GetPlayer(id)
 	if player == nil {
 		return
 	}
 	player.bubbleColor = data.BombColor
-	player.role = data.Role
-	e.match.JoinPlayer(player)
+	err := e.match.JoinPlayer(player)
+	if err != nil {
+		player.pipe.SendMessage(&ws.Message{
+			Event: events.JoinError,
+			Info:  err.Error(),
+		})
+		return
+	}
+
+	e.match.JoinPlayerRobots()
 }
 
 func (e *Engine) UserLogin(pipe *ws.Pipe, data *LoginData) (player *Player, err error) {
@@ -99,22 +119,20 @@ func (e *Engine) UserLogin(pipe *ws.Pipe, data *LoginData) (player *Player, err 
 		return
 	}
 
-	player = &Player{
-		id: user.Id,
-		name: user.Name,
-		avatar: user.Avatar,
-		pipe: pipe,
-	}
-	e.playerList.Store(player.id, player)
+	player = NewPlayer(pipe, user, PlayerHuman)
+
+	e.AddPlayer(player)
 
 	return
 }
 
-func (e *Engine) checkToken(id, token string) (user *UserInfo, typ errType, err error){
-	user = &UserInfo{
+func (e *Engine) checkToken(id, token string) (user store.UserInfo, typ errType, err error){
+	user = store.UserInfo{
 		Id: id,
 		Name: utils.RandString(20),
 		Avatar: "",
 	}
 	return
 }
+
+

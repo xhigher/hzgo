@@ -13,6 +13,16 @@ func FormatYmdhms(ts int64) string {
 	return time.Unix(ts, 0).Format(TimeFormatYMDHMS)
 }
 
+func ParseYmd(ymd string) time.Time {
+	t, _ := time.ParseInLocation(TimeFormatYMD, ymd, time.Local)
+	return t
+}
+
+func ParseYmdhms(ymdhms string) time.Time {
+	t, _ := time.ParseInLocation(TimeFormatYMDHMS, ymdhms, time.Local)
+	return t
+}
+
 func FormatMoney(money int64) string {
 	return fmt.Sprintf("%.2f", float64(money)/100)
 }

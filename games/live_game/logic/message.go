@@ -22,6 +22,10 @@ func decodeMsgData(raw json.RawMessage, data interface{}) error {
 	return err
 }
 
+type PlayerId struct {
+	Id string `json:"id"`
+}
+
 type LoginData struct {
 	Id string `json:"id"`
 	Token string `json:"token"`
@@ -48,8 +52,14 @@ type RoundStartData struct {
 	Type int `json:"type"`
 	RoomType int `json:"roomType"`
 	Status int `json:"status"`
-	Users []PlayerData `json:"users"`
-	Map maps.Map `json:"map"`
+	Player []PlayerData `json:"users"`
+	Map maps.MapData `json:"map"`
 	Bubbles []int `json:"bombs"`
 	Props []PropData `json:"props"`
+}
+
+type PropDisappearData struct {
+	Id int `json:"id"`
+	PickUp bool `json:"pick_up"`
+	Player string `json:"player"`
 }

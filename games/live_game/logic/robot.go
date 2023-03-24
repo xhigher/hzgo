@@ -1,8 +1,13 @@
 package logic
 
 import (
+	"fmt"
+	"github.com/xhigher/hzgo/games/live_game/maps"
 	"github.com/xhigher/hzgo/utils"
+	"math/rand"
+	"sort"
 	"sync"
+	"time"
 )
 
 var (
@@ -13,12 +18,7 @@ var (
 	}
 )
 
-type Robot struct {
-	player *Player
-	loadProcess int
-}
-
-func initRobots(count int){
+func InitRobots(count int){
 	for i:=0; i<count; i++ {
 		robots.Put(newRobot(i))
 	}
@@ -26,19 +26,515 @@ func initRobots(count int){
 
 func newRobot(i int) *Robot{
 	return &Robot{
-		player: &Player{
+		Player:&Player{
 			id: utils.IntToBase36(utils.NowTime()-725846400+int64(i)),
 			name: utils.RandString(20),
 			avatar: "",
+			role: PlayerRobot,
 		},
+		character: 0,
+		IQ: utils.RandInt32(10, 100),
 	}
 }
 
-func getRobot() *Robot{
+func GeRobot() *Robot{
 	return robots.Get().(*Robot)
 }
 
-func releaseRobot(r *Robot){
-	r.player.reset()
+func ReleaseRobot(r *Robot){
+	r.reset()
 	robots.Put(r)
+}
+
+type Robot struct {
+	*Player
+	character int  //性格  0为喜欢杀玩家   1为喜欢杀机器人  2喜欢炸箱子  3喜欢乱走乱放泡泡
+	IQ int32
+	usedBubbleCount int
+	timer *time.Timer
+}
+
+func (r *Robot) Run(){
+	if r.status == PlayerActive {
+
+		movableSites := &MovableSites{
+			data: map[string]MovableSite{},
+		}
+		checkSites := []MovableSite{
+			{Base:&maps.Site{X:r.curSite.X, Y:r.curSite.Y}, Range: 0},
+		}
+		r.getMovableSites(checkSites, movableSites, 0)
+
+		//获取预爆炸点
+		bombSites := &BombSites{
+			bombingBubbles: r.room.bubbles,
+		}
+		r.getBombSites(bombSites)
+
+		//计算可以去到的点位的权重值，并附加到数组元素中
+		siteList := movableSites.GetData()
+		if len(siteList) > 0 {
+			r.computeCanPosPower(siteList,bombSites.areas)
+			//根据算出的点位权重再次排序,权重相同按照远近进行排序
+
+			sort.SliceStable(siteList, func(i, j int) bool {
+				return siteList[i].Power < siteList[j].Power
+			})
+
+			//拿到最高权重的目标位置
+			powerSite := siteList[0]
+			//前往该点位
+			if powerSite.Start == nil {
+				r.moveStop()
+				if r.bubbleCount > 0 {
+					if yes, _ := r.room.ExistBubble(r.curSite); yes {
+						r.usedBubbleCount ++
+						r.CreateBubble()
+					}
+				}
+			}else{
+				startSite := *powerSite.Start
+				isDanger := false
+				//智商大于0.7，且随机一般几率触发紧急避险
+				if r.IQ>30 && rand.Intn(10)<5 {
+					//紧急避险
+					//获取即将爆炸的点位
+					nt := time.Now().Unix()
+					delayTime := int64(r.stepTime * 2)
+					var bombingBubbles []*Bubble
+					var leftBubbles []*Bubble
+					for _,b := range r.room.bubbles {
+						if nt - b.ct > 3000 -delayTime {
+							bombingBubbles = append(bombingBubbles, b)
+						}else{
+							leftBubbles = append(leftBubbles, b)
+						}
+					}
+					bombSites2 := &BombSites{
+						bombingBubbles: bombingBubbles,
+						leftBubbles: leftBubbles,
+					}
+					r.getBombSites(bombSites2)
+
+					if utils.InArray(bombSites2.areas, startSite) {
+						var toCheckSites []maps.Site
+						for _, s := range siteList {
+							if s.Range == 1 && startSite.Equal(*s.Base) {
+								toCheckSites = append(toCheckSites, *s.Base)
+							}
+						}
+						for _, s := range toCheckSites {
+							if utils.InArray(bombSites2.areas, s) {
+								isDanger = true
+								powerSite.Start = &maps.Site{
+									X:s.X,
+									Y: s.Y,
+								}
+								break
+							}
+						}
+					}
+
+				}
+
+				//非紧急避险状态下，旁边如果有地方玩家，则放泡泡
+				if !isDanger && r.bubbleCount>0 {
+					hasNearPlayer := false
+					for _, s := range siteList {
+						if s.Range <= 2 {
+							for _,p := range r.room.players {
+								if p.id != r.id && p.curSite.Equal(*s.Base){
+									hasNearPlayer = true
+									break
+								}
+							}
+						}
+						if hasNearPlayer {
+							break
+						}
+					}
+					if hasNearPlayer {
+						r.usedBubbleCount ++
+						r.CreateBubble()
+					}
+
+				}
+
+				//如果当前点不是爆炸点，则随机概率不动
+				if rand.Int31n(100) > r.IQ {
+					if utils.InArray(bombSites.areas, r.curSite){
+						r.SetSite(*powerSite.Start)
+					}else{
+						r.moveStop()
+					}
+				}else{
+					r.SetSite(*powerSite.Start)
+				}
+			}
+		}
+
+	}
+
+	if r.IsTrapped() && r.pinCount > 0 {
+		secs := utils.RandInt64(1000, 2000)
+		r.timer = time.AfterFunc(time.Millisecond* time.Duration(secs), func() {
+			r.usePin()
+			r.timer = time.AfterFunc(time.Millisecond * time.Duration(r.stepTime), r.Run)
+		})
+	}else{
+		r.timer = time.AfterFunc(time.Millisecond * time.Duration(r.stepTime), r.Run)
+	}
+}
+
+func (r *Robot) getBoxSiteCount(s maps.Site) int{
+	boxCount := 0
+	for i:=1; i<=r.bubblePower; i++ {
+		if r.room.mapData.ExistBox(maps.Site{X: s.X-i, Y: s.Y}) {
+			boxCount ++
+		}
+		if r.room.mapData.ExistBox(maps.Site{X: s.X+i, Y: s.Y}) {
+			boxCount ++
+		}
+		if r.room.mapData.ExistBox(maps.Site{X: s.X, Y: s.Y-i}) {
+			boxCount ++
+		}
+		if r.room.mapData.ExistBox(maps.Site{X: s.X, Y: s.Y+i}) {
+			boxCount ++
+		}
+	}
+	return boxCount
+}
+
+func (r *Robot) getEmptySiteCount(s maps.Site) int{
+	emptyCount := 0
+	if r.room.mapData.ExistBox(maps.Site{X: s.X-1, Y: s.Y}) {
+		emptyCount ++
+	}
+	if r.room.mapData.ExistBox(maps.Site{X: s.X+1, Y: s.Y}) {
+		emptyCount ++
+	}
+	if r.room.mapData.ExistBox(maps.Site{X: s.X, Y: s.Y-1}) {
+		emptyCount ++
+	}
+	if r.room.mapData.ExistBox(maps.Site{X: s.X, Y: s.Y+1}) {
+		emptyCount ++
+	}
+	return emptyCount
+}
+func (r *Robot) checkMovableSite(s maps.Site) bool {
+	if r.curSite.Equal(s) {
+		return true
+	}
+	if !r.room.mapData.IsEmptySite(s) {
+		return false
+	}
+	if yes, _ := r.room.ExistBubble(s); yes {
+		return false
+	}
+	return true
+}
+
+func (r *Robot) computeCanPosPower(movableSites []MovableSite, bombSites []maps.Site){
+	for i, ms := range movableSites {
+		s := *ms.Base
+		power := 0
+
+		//如果该点位四周有箱子，则根据箱子个数加权重
+		boxCount := r.getBoxSiteCount(s)
+		//判断四周能移动的点位有几个，2个以上每一个减权重10
+		emptyCount := r.getEmptySiteCount(s)
+
+
+		//如果该点已经放了有泡泡，则减去权重
+		isBubble, _ := r.room.ExistBubble(s)
+
+		//如果该点位是预爆炸点，则减去权重
+		isBombing := utils.InArray(bombSites, s)
+
+		//如果该点位有道具，则增加权重
+		isProp := false
+		if ms.Range <= 6 {
+			isProp, _ = r.room.ExistProp(s)
+		}
+
+		//这个点是否有玩家
+		isNearUser, p := r.room.ExistPlayer(s)
+
+		//如果附近有被泡住的玩家，则权重很高
+		isTrappedUser := false
+		if ms.Range <= 10 {
+			if isNearUser && p.IsTrapped() {
+				isTrappedUser = true
+			}
+		}
+
+		//这个点是否有机器人
+		isNearBot := false
+		if p.IsRobot() {
+			isNearBot = true
+		}
+
+		//游戏内是否还剩余有玩家
+		//hasHumanPlayer := r.room.HasHumanPlayer()
+
+		switch r.character {
+		case 0:{
+			power += boxCount * 5
+			power -= ms.Range * 2
+			if r.bubbleCount !=1 || rand.Intn(10)<5 {
+				power-=(emptyCount-1)*5
+			}
+			if isBubble {
+				power -= 100
+			}
+			if isBombing {
+				power -= 290
+			}
+			if isProp && (r.bubbleCount<4 || r.bubblePower < 4) {
+				if yes, prop := r.room.ExistProp(s); yes {
+					if prop.typ!= 2 || r.stepTime>200 {
+						power += 50
+					}
+				}
+			}
+			if isTrappedUser {
+				power += 500
+			}
+			if isNearUser {
+				power += 300
+			}
+			break
+		}
+		case 1:{
+			power += boxCount * 5
+			power -= ms.Range * 2
+			if r.bubbleCount !=1 || rand.Intn(10)<5 {
+				power-=(emptyCount-1)*5
+			}
+			if isBubble {
+				power -= 100
+			}
+			if isBombing {
+				power -= 290
+			}
+			if isProp && (r.bubbleCount<4 || r.bubblePower < 4) {
+				if yes, prop := r.room.ExistProp(s); yes {
+					if prop.typ!= 2 || r.stepTime>200 {
+						power += 50
+					}
+				}
+			}
+			if isTrappedUser {
+				power += 50
+			}
+			if isNearBot {
+				power += 300
+			}
+			break
+		}
+		case 2:{
+
+			power += boxCount * 50
+			power -= ms.Range * 20
+			if r.bubbleCount !=1 || rand.Intn(10)<5 {
+				power-=(emptyCount-1)*50
+			}
+			if isBubble {
+				power -= 100
+			}
+			if isBombing {
+				power -= 300
+			}
+			if isProp {
+				if yes, prop := r.room.ExistProp(s); yes {
+					if prop.typ!= 2 || r.stepTime>200 {
+						power += 50
+					}
+				}
+			}
+			if isTrappedUser {
+				power += 500
+			}
+			break
+		}
+		case 3:{
+			if boxCount < 3 {
+				power += boxCount * 5
+			}
+
+			power -= ms.Range * 2
+			if r.bubbleCount !=1 || rand.Intn(10)<5 {
+				power-=(emptyCount-1)*5
+			}
+			if isBubble {
+				power -= 100
+			}
+			if isBombing {
+				power -= 300
+			}
+			if isProp {
+				if yes, prop := r.room.ExistProp(s); yes {
+					if prop.typ!= 2 || r.stepTime>200 {
+						power += 50
+					}
+				}
+			}
+			if isTrappedUser {
+				power += 500
+			}
+			break
+		}
+		}
+
+		movableSites[i].Power = power
+	}
+}
+
+type MovableSite struct {
+	Base *maps.Site
+	Start *maps.Site
+	Range int
+	Power int
+}
+
+type MovableSites struct {
+	data map[string]MovableSite
+}
+
+func (m *MovableSites) Exists(site maps.Site) bool{
+	if _, ok := m.data[fmt.Sprintf("%d-%d", site.X, site.Y)]; ok {
+		return true
+	}
+	return false
+}
+
+func (m *MovableSites) Add(site MovableSite) {
+	m.data[fmt.Sprintf("%d-%d", site.Base.X, site.Base.Y)] = site
+}
+
+func (m *MovableSites) GetData() []MovableSite {
+	var data []MovableSite
+	for _,s := range m.data {
+		data = append(data, s)
+	}
+	return data
+}
+
+func (r *Robot) checkMoveSite(site maps.Site) bool{
+	if r.curSite.Equal(site) {
+		return true
+	}
+	if !r.room.mapData.IsEmptySite(site) {
+		return false
+	}
+	//如果该坐标有泡泡，不能去
+	if yes, _:= r.room.ExistBubble(site); yes {
+		return false
+	}
+	return true
+}
+func (r *Robot) getMovableSites(checkSites []MovableSite, movableSites *MovableSites, rn int){
+	var nextCheckSites []MovableSite //下一轮需要检测的点数组
+	for i:=0;i<len(checkSites);i++ {
+		s1 := checkSites[i]
+		rangeSites := []maps.Site{
+			{X:s1.Base.X, Y: s1.Base.Y+1},
+			{X:s1.Base.X, Y: s1.Base.Y-1},
+			{X:s1.Base.X+1, Y: s1.Base.Y},
+			{X:s1.Base.X-1, Y: s1.Base.Y},
+		}
+		for _, s2 := range rangeSites {
+			if r.checkMoveSite(s2) {
+				if !movableSites.Exists(s2) {
+					s3 := MovableSite{
+						Base: &s2,
+						Range: rn,
+					}
+					if s1.Start !=nil {
+						s3.Start = s1.Start
+					}else{
+						s3.Start = &s2
+					}
+					movableSites.Add(s3)
+					nextCheckSites = append(nextCheckSites, s3)
+				}
+			}
+		}
+	}
+
+	if len(nextCheckSites) > 0{
+		rn ++
+		r.getMovableSites(nextCheckSites ,movableSites ,rn)
+	}
+}
+
+func (r *Robot) Stop(){
+	r.timer.Stop()
+}
+
+type BombSites struct {
+	areas []maps.Site
+	bombingBubbles []*Bubble //即将爆炸的泡泡
+	leftBubbles []*Bubble
+}
+
+func (bs *BombSites) AddBombArray(s maps.Site){
+	yes := false
+	for _, b := range bs.areas {
+		if b.Equal(s) {
+			yes = true
+			break
+		}
+	}
+	if !yes{
+		bs.areas = append(bs.areas, s)
+	}
+}
+
+func (bs *BombSites) ExistBombArray(s maps.Site) bool{
+	for _, b := range bs.areas {
+		if b.Equal(s) {
+			return true
+		}
+	}
+	return false
+}
+
+func (r *Robot) getBombSites(data *BombSites){
+	for _, b := range data.bombingBubbles {
+		data.AddBombArray(b.site)
+		for i:=0; i<b.power; i++ {
+			s := maps.Site{X:b.site.X+i, Y: b.site.Y}
+			if r.room.mapData.IsEmptySite(s) {
+				data.AddBombArray(s)
+			}
+			s = maps.Site{X:b.site.X-i, Y: b.site.Y}
+			if r.room.mapData.IsEmptySite(s) {
+				data.AddBombArray(s)
+			}
+			s = maps.Site{X:b.site.X, Y: b.site.Y+i}
+			if r.room.mapData.IsEmptySite(s) {
+				data.AddBombArray(s)
+			}
+			s = maps.Site{X:b.site.X, Y: b.site.Y-i}
+			if r.room.mapData.IsEmptySite(s) {
+				data.AddBombArray(s)
+			}
+		}
+	}
+	//判断剩余的泡泡是否有在当前爆炸点内的，如果有，则计算引爆点
+	var nextBeBombBubbles []*Bubble
+	var nextLeftBubbles []*Bubble
+	for _, b := range data.leftBubbles {
+		if data.ExistBombArray(b.site) {
+			nextBeBombBubbles = append(nextBeBombBubbles, b)
+		}else{
+			nextLeftBubbles = append(nextLeftBubbles, b)
+		}
+	}
+	if len(nextBeBombBubbles) > 0 {
+		data.bombingBubbles = nextBeBombBubbles
+		data.leftBubbles = nextLeftBubbles
+		r.getBombSites(data)
+	}
 }

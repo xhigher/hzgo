@@ -14,6 +14,7 @@ const (
 	//客户端事件 end
 
 
+	DisappearProp = "disappearProp"
 
 	Login = "login"
 	LoginError = "loginError"
@@ -28,7 +29,7 @@ const (
 	GameOver = "gameOver"
 	exitRoom = "exitRoom"
 
-	bubbleBomb = "bomb"
+	BubbleBomb = "bomb"
 
 )
 

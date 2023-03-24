@@ -7,14 +7,15 @@ import (
 	"github.com/xhigher/hzgo/server/ws"
 	"github.com/xhigher/hzgo/utils"
 	"math/rand"
+	"time"
 )
 
 type RoomStatus int
 const (
 	Idle RoomStatus = 0
-	Loading RoomStatus = 1
+	Reading RoomStatus = 1
 	Ongoing RoomStatus = 2
-	End RoomStatus = 3
+	Ended RoomStatus = 3
 )
 
 type Room struct {
@@ -23,19 +24,21 @@ type Room struct {
 	status RoomStatus
 	st int64
 	et int64
-	winner int
 	aliveNum int
 	mapData maps.MapData
 	players []*Player
-	robots []*Robot
 	bubbles []*Bubble
+	robots []*Robot
 	props []*Prop
 	bubbleId int
+	propId int
 	TickChan chan int
 	context context.Context
 	closeFunc context.CancelFunc
-	tickCount int
 	audiences map[string]*Player
+	propWeights []PropWeight
+	endTime time.Time
+	winner *Player
 }
 
 type RoomData struct {
@@ -53,34 +56,48 @@ type RoomResult struct {
 	Winner int `json:"winner"`
 }
 
-func NewRoom(m *Match, id int, playerCount int) *Room{
+func NewRoom(id int, playerCount int) *Room{
 	mapData := maps.GetMap(playerCount)
 	r := &Room{
 		id: id,
 		status: Idle,
 		st: utils.NowTime(),
 		et:0,
-		winner:0,
+		winner:nil,
 		aliveNum: 0,
 		mapData: mapData,
 		bubbleId:0,
-		TickChan:make(chan int, 1),
-		tickCount:0,
+		propWeights:[]PropWeight{
+			{
+				Type: 0,
+				Weight: 20,
+			},
+			{
+				Type: 1,
+				Weight: 20,
+			},
+			{
+				Type: 2,
+				Weight: 20,
+			},
+			{
+				Type: 3,
+				Weight: 1,
+			},
+		},
 	}
 
-	r.context, r.closeFunc = context.WithCancel(m.roomContext)
-
-	go func() {
-		for {
-			select {
-			case <-r.TickChan:
-				r.HandleTick()
-			case <-r.context.Done():
-
-				return
-			}
-		}
-	}()
+	//r.context, r.closeFunc = context.WithCancel(m.roomContext)
+	//
+	//go func() {
+	//	for {
+	//		select {
+	//		case <-r.context.Done():
+	//
+	//			return
+	//		}
+	//	}
+	//}()
 
 	return r
 }
@@ -121,48 +138,30 @@ func (r *Room) getPropsData() []PropData{
 	return msg
 }
 
-func (r *Room) HandleTick(){
-	switch r.status {
-	case Loading:
-		r.handleLoading()
-	case Ongoing:
 
+func (r *Room) handleTimerEvent(now time.Time){
+	if r.status != Ongoing {
+		return
+	}
+	if now.After(r.endTime) {
+		r.status = Ended
+		r.handleResult()
 	}
 }
 
-func (r *Room) handleLoading(){
-	r.tickCount ++
-	if r.tickCount % 5 == 0 {//500ms
-		loading := 0
-		for _, rb := range r.robots {
-			rb.loadProcess = rb.loadProcess + rand.Intn(20)
-			if rb.loadProcess > 100 {
-				rb.loadProcess = 100
-			}
-			msg := &ws.Message{
-				Event: events.LoadProcess,
-				Data: encodeMsgData(LoadProcessData{
-					Id: r.id,
-					Process: rb.loadProcess,
-				}),
-			}
-			r.BroadcastMsg(msg)
-			if rb.loadProcess >= 100 {
-				loading ++
-			}
-		}
-		if loading == len(r.robots) {
-			r.readyGo()
-		}
-	}
-}
-
-func (r *Room) readyGo(){
+func (r *Room) ReadyGo(endTime time.Time){
 	r.status = Ongoing
+	r.endTime = endTime
 	msg := &ws.Message{
 		Event: events.GameReady,
 	}
 	r.BroadcastMsg(msg)
+
+	r.RunRobotPlayers()
+}
+
+func (r *Room) handleResult(){
+
 }
 
 func (r *Room) Finish(){
@@ -170,16 +169,12 @@ func (r *Room) Finish(){
 }
 
 func (r *Room) JoinPlayer(player *Player){
-
+	r.players = append(r.players, player)
 }
 
-func (r *Room) ExistPlayer(player *Player) bool {
-	for _,p := range r.players {
-		if p.id == player.id {
-			return true
-		}
-	}
-	return false
+func (r *Room) JoinRobot(robot *Robot){
+	r.robots = append(r.robots, robot)
+	r.players = append(r.players, robot.Player)
 }
 
 func (r *Room) CheckSiteBubble(site maps.Site) bool {
@@ -191,8 +186,8 @@ func (r *Room) CheckSiteBubble(site maps.Site) bool {
 	return false
 }
 
-func (r Room) BroadcastMsg(msg *ws.Message){
-	if r.status == End {
+func (r *Room) BroadcastMsg(msg *ws.Message){
+	if r.status != Ongoing {
 		return
 	}
 	for _,p := range r.players {
@@ -210,13 +205,14 @@ func (r Room) SendPlayerMsg(p *Player, msg *ws.Message){
 	}
 }
 
-func (r Room) RoundStart(){
+func (r *Room) RoundStart(){
+	r.status = Reading
 	data := &RoundStartData{
 		RoomId: r.id,
 		Type:    r.typ,
 		Status:  int(r.status),
 		Map:     r.mapData,
-		Users: r.getPlayersData(),
+		Player: r.getPlayersData(),
 		Bubbles:  nil,
 		Props:   r.getPropsData(),
 	}
@@ -228,13 +224,155 @@ func (r Room) RoundStart(){
 	r.BroadcastMsg(msg)
 }
 
-func  (r Room) Exit(id string){
+func  (r *Room) IsEnded() bool{
+	return r.status == Ended
+}
+
+func  (r *Room) Exit(id string){
 	if _, ok := r.audiences[id]; ok {
 		delete(r.audiences, id)
 	}
 	for _,p := range r.players {
 		if p.id == id {
-			p.status = PlayerExit
+			p.status = PlayerDied
 		}
+	}
+}
+
+func (r *Room) DeleteBubble(b *Bubble) bool{
+	for i, tb := range r.bubbles {
+		if tb.Id == b.Id {
+			if i > 0 {
+				r.bubbles = append(r.bubbles[:i], r.bubbles[i+1:]...)
+			}else{
+				r.bubbles = r.bubbles[1:]
+			}
+			return true
+		}
+	}
+	return false
+}
+
+func (r *Room) ExistBubble(site maps.Site) (bool, *Bubble){
+	for _, tb := range r.bubbles {
+		if tb.site.Equal(site) {
+			return true,tb
+		}
+	}
+	return false, nil
+}
+
+func (r *Room) ExistProp(site maps.Site) (bool, *Prop){
+	for _, tb := range r.props {
+		if tb.site.Equal(site) {
+			return true,tb
+		}
+	}
+	return false, nil
+}
+
+func (r *Room) ExistPlayer(site maps.Site) (bool, *Player){
+	for _, tp := range r.players {
+		if tp.curSite.Equal(site) {
+			return true,tp
+		}
+	}
+	return false, nil
+}
+
+func (r *Room) HasHumanPlayer() bool{
+	for _, tp := range r.players {
+		if !tp.IsRobot() && tp.IsPlaying() {
+			return true
+		}
+	}
+	return false
+}
+
+func (r *Room) BombBubble(id int){
+	result := &BombResult{}
+	for _, b := range r.bubbles {
+		if b.Id == id {
+			b.Bomb(result)
+			break
+		}
+	}
+	//在地图中销毁需要销毁的箱子
+	r.destroyBoxes(result)
+
+	msg := &ws.Message{
+		Event: events.BubbleBomb,
+		Data:encodeMsgData(result),
+	}
+	r.BroadcastMsg(msg)
+
+	r.checkBombedUsers(result)
+
+}
+
+func (r *Room) destroyBoxes(result *BombResult){
+	for _,bx := range result.Boxes {
+		r.mapData.Boxes[bx.Y][bx.X] = 0
+		rn := rand.Int31n(100)
+		//30%几率产生道具
+		if rn < 30 {
+			pw := WeightRandom(r.propWeights)
+			prop := &Prop{
+				id: r.propId,
+				site: bx,
+				typ: pw.Type,
+				roomId: r.id,
+			}
+			r.props = append(r.props, prop)
+			r.propId ++
+		}
+	}
+}
+
+//判断爆炸点数组是否有该用户，如果有，则泡住
+func (r *Room) checkBombedUsers(result *BombResult){
+	for _,p := range r.players {
+		for _,a := range result.Areas {
+			if a.Equal(p.curSite) {
+				if p.status == 0 {
+					p.Trapped()
+				}else if p.status == 10 {
+					p.Die()
+				}
+			}
+		}
+	}
+}
+
+func (r *Room) DisappearProp(p *Prop, isPickUp bool, player *Player){
+	pi := -1
+	for i, tb := range r.props {
+		if tb.site.Equal(p.site) {
+			pi = i
+			break
+		}
+	}
+	if pi >= 0 {
+		if pi > 0 {
+			r.props = append(r.props[:pi], r.props[pi+1:]...)
+		}else{
+			r.props = r.props[1:]
+		}
+		msg := &ws.Message{
+			Event:events.DisappearProp,
+			Data: encodeMsgData(&PropDisappearData{
+				Id: p.id,
+				PickUp: isPickUp,
+				Player: player.id,
+			}),
+		}
+		r.BroadcastMsg(msg)
+	}
+}
+
+
+func (r *Room) RunRobotPlayers(){
+	for _, pr := range r.robots {
+		pr.Run()
 	}
 }

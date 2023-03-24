@@ -25,6 +25,7 @@ func NewServer(conf *config.ServerConfig) *HzgoServer {
 	return &HzgoServer{
 		Conf: conf,
 		Hz: server.Default(server.WithHostPorts(conf.Addr),
+			server.WithExitWaitTime(consts.TimeSecond1),
 			server.WithMaxRequestBodySize(conf.MaxReqSize)),
 		Auth: NewAuth(conf.JWT),
 	}

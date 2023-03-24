@@ -7,6 +7,7 @@ import (
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/hertz-contrib/websocket"
 	"github.com/xhigher/hzgo/config"
+	"github.com/xhigher/hzgo/consts"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/mysql"
 	"github.com/xhigher/hzgo/utils"
@@ -26,6 +27,7 @@ func NewServer(conf *config.ServerConfig, handler Handler) *HzgoServer {
 	mysql.Init(conf.Mysql)
 	fmt.Println("server config: ", utils.JSONString(conf))
 	hz := server.Default(server.WithHostPorts(conf.Addr),
+		server.WithExitWaitTime(consts.TimeSecond1),
 	server.WithMaxRequestBodySize(conf.MaxReqSize))
 	hz.NoHijackConnPool = true
 	svr := &HzgoServer{
