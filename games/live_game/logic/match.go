@@ -51,6 +51,7 @@ func newMatch(config MatchConfig) *Match{
 		playerCount: int(math.Pow(float64(config.RoomPlayerCount), float64(config.RoundCount))),
 		startTime: utils.ParseYmdhms(config.StartTime),
 		status: MatchWaiting,
+		robots: map[string]*Robot{},
 	}
 
 	go func() {
@@ -78,6 +79,7 @@ func (m *Match) Restart(){
 	m.curRound = 0
 	m.startTime = m.startTime.Add(time.Duration(m.config.IntervalHours) * time.Hour)
 	m.players = nil
+	m.robots = map[string]*Robot{}
 	m.rooms = nil
 }
 
@@ -144,11 +146,12 @@ func (m *Match) handleTimerEvent(now time.Time){
 }
 
 func (m *Match) JoinRobot(robot *Robot) (err error){
+	m.robots[robot.id] = robot
 	err = m.JoinPlayer(robot.Player)
 	if err != nil {
+		delete(m.robots, robot.id)
 		return
 	}
-	m.robots[robot.id] = robot
 	return
 }
 

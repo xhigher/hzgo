@@ -26,14 +26,16 @@ func InitRobots(count int){
 
 func newRobot(i int) *Robot{
 	return &Robot{
-		Player:&Player{
-			id: utils.IntToBase36(utils.NowTime()-725846400+int64(i)),
-			name: utils.RandString(20),
+		&Player{
+			id:     utils.IntToBase36(utils.NowTime() - 725846400 + int64(i)),
+			name:   utils.RandString(20),
 			avatar: "",
-			role: PlayerRobot,
+			role:   PlayerRobot,
 		},
-		character: 0,
-		IQ: utils.RandInt32(10, 100),
+		0,
+		utils.RandInt32(10, 100),
+		0,
+		nil,
 	}
 }
 
@@ -42,7 +44,6 @@ func GeRobot() *Robot{
 }
 
 func ReleaseRobot(r *Robot){
-	r.reset()
 	robots.Put(r)
 }
 
@@ -189,17 +190,16 @@ func (r *Robot) Run(){
 func (r *Robot) getBoxSiteCount(s maps.Site) int{
 	boxCount := 0
 	for i:=1; i<=r.bubblePower; i++ {
-		if r.room.mapData.ExistBox(maps.Site{X: s.X-i, Y: s.Y}) {
-			boxCount ++
-		}
-		if r.room.mapData.ExistBox(maps.Site{X: s.X+i, Y: s.Y}) {
-			boxCount ++
-		}
-		if r.room.mapData.ExistBox(maps.Site{X: s.X, Y: s.Y-i}) {
-			boxCount ++
-		}
-		if r.room.mapData.ExistBox(maps.Site{X: s.X, Y: s.Y+i}) {
-			boxCount ++
+		sites := r.room.mapData.GetValidSites([]maps.Site{
+			{X: s.X-i, Y: s.Y},
+			{X: s.X+i, Y: s.Y},
+			{X: s.X, Y: s.Y-i},
+			{X: s.X, Y: s.Y+i},
+		})
+		for _, ts := range sites {
+			if r.room.mapData.ExistBox(ts) {
+				boxCount ++
+			}
 		}
 	}
 	return boxCount
@@ -207,17 +207,16 @@ func (r *Robot) getBoxSiteCount(s maps.Site) int{
 
 func (r *Robot) getEmptySiteCount(s maps.Site) int{
 	emptyCount := 0
-	if r.room.mapData.ExistBox(maps.Site{X: s.X-1, Y: s.Y}) {
-		emptyCount ++
-	}
-	if r.room.mapData.ExistBox(maps.Site{X: s.X+1, Y: s.Y}) {
-		emptyCount ++
-	}
-	if r.room.mapData.ExistBox(maps.Site{X: s.X, Y: s.Y-1}) {
-		emptyCount ++
-	}
-	if r.room.mapData.ExistBox(maps.Site{X: s.X, Y: s.Y+1}) {
-		emptyCount ++
+	sites := r.room.mapData.GetValidSites([]maps.Site{
+		{X: s.X-1, Y: s.Y},
+		{X: s.X+1, Y: s.Y},
+		{X: s.X, Y: s.Y-1},
+		{X: s.X, Y: s.Y+1},
+	})
+	for _, ts := range sites {
+		if r.room.mapData.ExistBox(ts) {
+			emptyCount ++
+		}
 	}
 	return emptyCount
 }
@@ -270,7 +269,7 @@ func (r *Robot) computeCanPosPower(movableSites []MovableSite, bombSites []maps.
 
 		//这个点是否有机器人
 		isNearBot := false
-		if p.IsRobot() {
+		if p != nil && p.IsRobot() {
 			isNearBot = true
 		}
 
@@ -437,13 +436,13 @@ func (r *Robot) getMovableSites(checkSites []MovableSite, movableSites *MovableS
 	var nextCheckSites []MovableSite //下一轮需要检测的点数组
 	for i:=0;i<len(checkSites);i++ {
 		s1 := checkSites[i]
-		rangeSites := []maps.Site{
+		sites := r.room.mapData.GetValidSites([]maps.Site{
 			{X:s1.Base.X, Y: s1.Base.Y+1},
 			{X:s1.Base.X, Y: s1.Base.Y-1},
 			{X:s1.Base.X+1, Y: s1.Base.Y},
 			{X:s1.Base.X-1, Y: s1.Base.Y},
-		}
-		for _, s2 := range rangeSites {
+		})
+		for _, s2 := range sites {
 			if r.checkMoveSite(s2) {
 				if !movableSites.Exists(s2) {
 					s3 := MovableSite{
@@ -504,21 +503,16 @@ func (r *Robot) getBombSites(data *BombSites){
 	for _, b := range data.bombingBubbles {
 		data.AddBombArray(b.site)
 		for i:=0; i<b.power; i++ {
-			s := maps.Site{X:b.site.X+i, Y: b.site.Y}
-			if r.room.mapData.IsEmptySite(s) {
-				data.AddBombArray(s)
-			}
-			s = maps.Site{X:b.site.X-i, Y: b.site.Y}
-			if r.room.mapData.IsEmptySite(s) {
-				data.AddBombArray(s)
-			}
-			s = maps.Site{X:b.site.X, Y: b.site.Y+i}
-			if r.room.mapData.IsEmptySite(s) {
-				data.AddBombArray(s)
-			}
-			s = maps.Site{X:b.site.X, Y: b.site.Y-i}
-			if r.room.mapData.IsEmptySite(s) {
-				data.AddBombArray(s)
+			sites := r.room.mapData.GetValidSites([]maps.Site{
+				{X:b.site.X+i, Y: b.site.Y},
+				{X:b.site.X-i, Y: b.site.Y},
+				{X:b.site.X, Y: b.site.Y+i},
+				{X:b.site.X, Y: b.site.Y-i},
+			})
+			for _,s := range sites {
+				if r.room.mapData.IsEmptySite(s) {
+					data.AddBombArray(s)
+				}
 			}
 		}
 	}

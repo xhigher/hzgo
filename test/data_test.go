@@ -6,6 +6,7 @@ import (
 	"crypto/cipher"
 	"encoding/base64"
 	"fmt"
+	"math/rand"
 	"testing"
 )
 
@@ -84,4 +85,10 @@ func TestA(t *testing.T) {
 	text2 = CommonAesDecrypt(key, text2)
 	fmt.Println(text2)
 
+}
+
+func TestMap(t *testing.T) {
+	playerNum := 4
+	id := (((playerNum-1) / 2)+1) * 200 + rand.Intn(4)
+	fmt.Println("map.id", id)
 }

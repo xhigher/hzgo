@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/xhigher/hzgo/games/live_game/events"
 	"github.com/xhigher/hzgo/games/live_game/maps"
+	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/server/ws"
 	"github.com/xhigher/hzgo/utils"
 	"math/rand"
@@ -157,6 +158,10 @@ func (r *Room) ReadyGo(endTime time.Time){
 	}
 	r.BroadcastMsg(msg)
 
+	for _,p := range r.players {
+		p.status = PlayerActive
+	}
+
 	r.RunRobotPlayers()
 }
 
@@ -169,10 +174,13 @@ func (r *Room) Finish(){
 }
 
 func (r *Room) JoinPlayer(player *Player){
+	player.room = r
 	r.players = append(r.players, player)
 }
 
 func (r *Room) JoinRobot(robot *Robot){
+	logger.Infof("JoinRobot id: %v", robot.id)
+	robot.Player.room = r
 	r.robots = append(r.robots, robot)
 	r.players = append(r.players, robot.Player)
 }
@@ -187,7 +195,7 @@ func (r *Room) CheckSiteBubble(site maps.Site) bool {
 }
 
 func (r *Room) BroadcastMsg(msg *ws.Message){
-	if r.status != Ongoing {
+	if r.status != Reading && r.status != Ongoing {
 		return
 	}
 	for _,p := range r.players {
@@ -373,6 +381,6 @@ func (r *Room) DisappearProp(p *Prop, isPickUp bool, player *Player){
 
 func (r *Room) RunRobotPlayers(){
 	for _, pr := range r.robots {
-		pr.Run()
+		go pr.Run()
 	}
 }

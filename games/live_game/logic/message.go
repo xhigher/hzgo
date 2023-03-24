@@ -63,3 +63,10 @@ type PropDisappearData struct {
 	PickUp bool `json:"pick_up"`
 	Player string `json:"player"`
 }
+
+type MoveData struct {
+	I string `json:"i"`
+	X int `json:"x"`
+	Y int `json:"y"`
+	T int `json:"t"`
+}

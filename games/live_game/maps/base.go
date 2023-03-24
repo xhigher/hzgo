@@ -54,6 +54,15 @@ func Init(){
 	addMap(map603)
 }
 
+func (m MapData) GetValidSites(origins []Site) (results []Site){
+	for _, s := range origins {
+		if s.X >= 0 && s.Y >= 0 && s.X < m.Size.Height && s.Y < m.Size.Width {
+			results = append(results, s)
+		}
+	}
+	return
+}
+
 func (m MapData) ExistObstacle(s Site) bool{
 	if m.Obstacles[s.Y] != nil && m.Obstacles[s.Y][s.X]==1 {
 		return true

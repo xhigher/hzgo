@@ -106,6 +106,17 @@ func (p *Player) SetSite(s maps.Site) {
 		p.PickUpProp(prop)
 	}
 
+	msg := &ws.Message{
+		Event: events.MoveStop,
+		Data: encodeMsgData(&MoveData{
+			I: p.id,
+			X:p.curSite.X,
+			Y:p.curSite.Y,
+			T:p.stepTime,
+		}),
+	}
+	p.room.BroadcastMsg(msg)
+
 	//判断该位置是否有被泡住的玩家，如果有，让玩家死亡
 }
 

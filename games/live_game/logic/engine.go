@@ -3,6 +3,7 @@ package logic
 import (
 	"errors"
 	"github.com/xhigher/hzgo/games/live_game/events"
+	"github.com/xhigher/hzgo/games/live_game/maps"
 	"github.com/xhigher/hzgo/games/live_game/model/store"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/server/ws"
@@ -32,6 +33,8 @@ type Engine struct {
 
 func StartEngine(config MatchConfig){
 	lock.Do(func() {
+		maps.Init()
+
 		defaultEngine = &Engine{
 			ticker: time.NewTicker(tickerDuration),
 			playerList: sync.Map{},
@@ -40,7 +43,7 @@ func StartEngine(config MatchConfig){
 		}
 		defaultEngine.startTicker()
 
-		InitPlayerRobots(10)
+		InitRobots(10)
 	})
 }
 
