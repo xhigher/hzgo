@@ -70,3 +70,23 @@ type MoveData struct {
 	Y int `json:"y"`
 	T int `json:"t"`
 }
+
+type RoundOverData struct {
+	Result []RoundOverResult `json:"result"`
+	Win int `json:"Win"`
+	Lose int `json:"lose"`
+}
+
+type RoundOverResult struct {
+	Player string `json:"player"`
+	Index int `json:"index"`
+	Win int `json:"win"`
+}
+
+type ChangeUserStatusData struct {
+	Id string `json:"id"`
+	Index int `json:"index"`
+	X int `json:"x"`
+	Y int `json:"y"`
+	Status int `json:"win"`
+}

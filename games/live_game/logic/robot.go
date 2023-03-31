@@ -3,6 +3,7 @@ package logic
 import (
 	"fmt"
 	"github.com/xhigher/hzgo/games/live_game/maps"
+	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/utils"
 	"math/rand"
 	"sort"
@@ -31,16 +32,23 @@ func newRobot(i int) *Robot{
 			name:   utils.RandString(20),
 			avatar: "",
 			role:   PlayerRobot,
+			stepTime: playerStepTime,
 		},
 		0,
-		utils.RandInt32(10, 100),
+		utils.RandInt32(10, 40),
 		0,
 		nil,
 	}
 }
 
 func GeRobot() *Robot{
-	return robots.Get().(*Robot)
+	robot := robots.Get().(*Robot)
+	robot.bubbleCount = utils.RandInt(1,2)
+	robot.bubblePower = 1
+	robot.pinCount = utils.RandInt(0, 1)
+
+	robot.character = utils.RandInt(0,3)
+	return robot
 }
 
 func ReleaseRobot(r *Robot){
@@ -57,38 +65,41 @@ type Robot struct {
 
 func (r *Robot) Run(){
 	if r.status == PlayerActive {
-
+		logger.Infof("Robot.Run: id=%v, character=%v, IQ=%v", r.id, r.character, r.IQ)
 		movableSites := &MovableSites{
 			data: map[string]MovableSite{},
 		}
+		movableSites.Add(MovableSite{
+			Base:&maps.Site{X:r.curSite.X, Y:r.curSite.Y}, Range: 0,
+		})
 		checkSites := []MovableSite{
-			{Base:&maps.Site{X:r.curSite.X, Y:r.curSite.Y}, Range: 0},
+			{Base:&maps.Site{X:r.curSite.X, Y:r.curSite.Y}},
 		}
-		r.getMovableSites(checkSites, movableSites, 0)
+		r.getMovableSites(checkSites, movableSites, 1)
 
+		logger.Infof("getMovableSites: id=%v, %v, %v", r.id, utils.JSONString(checkSites), utils.JSONString(movableSites))
 		//获取预爆炸点
 		bombSites := &BombSites{
 			bombingBubbles: r.room.bubbles,
 		}
 		r.getBombSites(bombSites)
-
+		logger.Infof("getBombSites: id=%v, %v", r.id, utils.JSONString(bombSites))
 		//计算可以去到的点位的权重值，并附加到数组元素中
 		siteList := movableSites.GetData()
 		if len(siteList) > 0 {
 			r.computeCanPosPower(siteList,bombSites.areas)
 			//根据算出的点位权重再次排序,权重相同按照远近进行排序
-
 			sort.SliceStable(siteList, func(i, j int) bool {
-				return siteList[i].Power < siteList[j].Power
+				return siteList[i].Power > siteList[j].Power
 			})
-
+			logger.Infof("getMovableSites: id=%v, siteList=%v", r.id, utils.JSONString(siteList))
 			//拿到最高权重的目标位置
 			powerSite := siteList[0]
 			//前往该点位
 			if powerSite.Start == nil {
 				r.moveStop()
 				if r.bubbleCount > 0 {
-					if yes, _ := r.room.ExistBubble(r.curSite); yes {
+					if !bombSites.ExistBombArray(r.curSite) {
 						r.usedBubbleCount ++
 						r.CreateBubble()
 					}
@@ -100,12 +111,12 @@ func (r *Robot) Run(){
 				if r.IQ>30 && rand.Intn(10)<5 {
 					//紧急避险
 					//获取即将爆炸的点位
-					nt := time.Now().Unix()
+					now := time.Now()
 					delayTime := int64(r.stepTime * 2)
 					var bombingBubbles []*Bubble
 					var leftBubbles []*Bubble
 					for _,b := range r.room.bubbles {
-						if nt - b.ct > 3000 -delayTime {
+						if b.bombTime.Sub(now) < time.Duration(delayTime) {
 							bombingBubbles = append(bombingBubbles, b)
 						}else{
 							leftBubbles = append(leftBubbles, b)
@@ -117,10 +128,12 @@ func (r *Robot) Run(){
 					}
 					r.getBombSites(bombSites2)
 
+					logger.Infof("id=%v, bombSites2.areas=%v, startSite=%v", r.id, utils.JSONString(bombSites2.areas), utils.JSONString(startSite))
 					if utils.InArray(bombSites2.areas, startSite) {
+						logger.Infof("InArray, id=%v, bombSites2.areas=%v, startSite=%v", r.id, utils.JSONString(bombSites2.areas), utils.JSONString(startSite))
 						var toCheckSites []maps.Site
 						for _, s := range siteList {
-							if s.Range == 1 && startSite.Equal(*s.Base) {
+							if s.Range == 1 && !startSite.Equal(*s.Base) {
 								toCheckSites = append(toCheckSites, *s.Base)
 							}
 						}
@@ -386,6 +399,7 @@ func (r *Robot) computeCanPosPower(movableSites []MovableSite, bombSites []maps.
 		}
 
 		movableSites[i].Power = power
+		logger.Infof("computeCanPosPower: id=%v, %v", r.id, utils.JSONString(movableSites[i].Power))
 	}
 }
 
@@ -430,6 +444,7 @@ func (r *Robot) checkMoveSite(site maps.Site) bool{
 	if yes, _:= r.room.ExistBubble(site); yes {
 		return false
 	}
+	logger.Infof("checkMoveSite: id=%v, %v, true", r.id, utils.JSONString(site))
 	return true
 }
 func (r *Robot) getMovableSites(checkSites []MovableSite, movableSites *MovableSites, rn int){
@@ -442,6 +457,7 @@ func (r *Robot) getMovableSites(checkSites []MovableSite, movableSites *MovableS
 			{X:s1.Base.X+1, Y: s1.Base.Y},
 			{X:s1.Base.X-1, Y: s1.Base.Y},
 		})
+		logger.Infof("GetValidSites: id=%v, %v", r.id, utils.JSONString(sites))
 		for _, s2 := range sites {
 			if r.checkMoveSite(s2) {
 				if !movableSites.Exists(s2) {
@@ -460,7 +476,7 @@ func (r *Robot) getMovableSites(checkSites []MovableSite, movableSites *MovableS
 			}
 		}
 	}
-
+	logger.Infof("nextCheckSites: id=%v, %v, %v", r.id, utils.JSONString(nextCheckSites), utils.JSONString(movableSites))
 	if len(nextCheckSites) > 0{
 		rn ++
 		r.getMovableSites(nextCheckSites ,movableSites ,rn)
@@ -502,7 +518,7 @@ func (bs *BombSites) ExistBombArray(s maps.Site) bool{
 func (r *Robot) getBombSites(data *BombSites){
 	for _, b := range data.bombingBubbles {
 		data.AddBombArray(b.site)
-		for i:=0; i<b.power; i++ {
+		for i:=1; i<=b.power; i++ {
 			sites := r.room.mapData.GetValidSites([]maps.Site{
 				{X:b.site.X+i, Y: b.site.Y},
 				{X:b.site.X-i, Y: b.site.Y},
@@ -517,17 +533,17 @@ func (r *Robot) getBombSites(data *BombSites){
 		}
 	}
 	//判断剩余的泡泡是否有在当前爆炸点内的，如果有，则计算引爆点
-	var nextBeBombBubbles []*Bubble
+	var nextBombingBubbles []*Bubble
 	var nextLeftBubbles []*Bubble
 	for _, b := range data.leftBubbles {
 		if data.ExistBombArray(b.site) {
-			nextBeBombBubbles = append(nextBeBombBubbles, b)
+			nextBombingBubbles = append(nextBombingBubbles, b)
 		}else{
 			nextLeftBubbles = append(nextLeftBubbles, b)
 		}
 	}
-	if len(nextBeBombBubbles) > 0 {
-		data.bombingBubbles = nextBeBombBubbles
+	if len(nextBombingBubbles) > 0 {
+		data.bombingBubbles = nextBombingBubbles
 		data.leftBubbles = nextLeftBubbles
 		r.getBombSites(data)
 	}

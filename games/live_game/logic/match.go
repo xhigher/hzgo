@@ -20,6 +20,8 @@ const (
 	MatchEnded MatchStatus = 4 //结束
 	readyDuration = 5 *time.Second
 	roundTimeoutDuration = 5*60 *time.Second
+	bubbleBombDuration = 3000 *time.Millisecond //3s
+	propAppearDuration = 10 *time.Second
 )
 
 type MatchConfig struct {

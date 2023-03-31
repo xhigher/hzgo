@@ -15,7 +15,8 @@ import (
 
 const (
 	userMaxCount = 5000
-	tickerDuration = 500*time.Millisecond
+	tickerDuration = 50*time.Millisecond
+	playerStepTime = 300
 )
 
 var (

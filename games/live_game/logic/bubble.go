@@ -1,6 +1,9 @@
 package logic
 
-import "github.com/xhigher/hzgo/games/live_game/maps"
+import (
+	"github.com/xhigher/hzgo/games/live_game/maps"
+	"time"
+)
 
 type BubbleState int
 const (
@@ -23,7 +26,7 @@ type Bubble struct {
 	power int
 	room *Room
 	player *Player
-	ct int64
+	bombTime time.Time
 	State BubbleState
 }
 type BubbleData struct {
@@ -45,6 +48,15 @@ func (b Bubble) GetData() BubbleData {
 		Player:  b.player.id,
 	}
 }
+
+func (b *Bubble) CheckBomb(now time.Time) (result *BombResult) {
+	if b.State == BubbleAlive && now.After(b.bombTime) {
+		result = &BombResult{}
+		b.Bomb(result)
+	}
+	return
+}
+
 
 func (b *Bubble) Bomb(result *BombResult) {
 	b.State = BubbleBombed
@@ -73,18 +85,23 @@ func (b *Bubble) Bomb(result *BombResult) {
 			X:b.site.X-i,
 			Y:b.site.Y,
 		}
-		if !b.canBomb(site,result){
-			break
+		if b.room.mapData.IsValidSite(site) {
+			if !b.canBomb(site,result){
+				break
+			}
 		}
 	}
+
 	//向下爆
 	for i:=1;i<=b.power;i++ {
 		site := maps.Site{
 			X:b.site.X+i,
 			Y:b.site.Y,
 		}
-		if !b.canBomb(site,result){
-			break
+		if b.room.mapData.IsValidSite(site) {
+			if !b.canBomb(site, result) {
+				break
+			}
 		}
 	}
 
@@ -94,8 +111,10 @@ func (b *Bubble) Bomb(result *BombResult) {
 			X:b.site.X,
 			Y:b.site.Y+i,
 		}
-		if !b.canBomb(site,result){
-			break
+		if b.room.mapData.IsValidSite(site) {
+			if !b.canBomb(site, result) {
+				break
+			}
 		}
 	}
 
@@ -105,29 +124,27 @@ func (b *Bubble) Bomb(result *BombResult) {
 			X:b.site.X,
 			Y:b.site.Y-i,
 		}
-		if !b.canBomb(site,result){
-			break
+		if b.room.mapData.IsValidSite(site) {
+			if !b.canBomb(site, result) {
+				break
+			}
 		}
 	}
 }
 
 func (b *Bubble) canBomb(site maps.Site, result *BombResult) bool{
 	//判断这个点是否有障碍物，如果有，直接返回false
-	if !b.room.mapData.ExistObstacle(site){
+	if b.room.mapData.ExistObstacle(site){
 		return false
 	}
 	//判断这个点是否有箱子，如果有，则引爆箱子
 	if b.room.mapData.ExistBox(site){
-		no := true
 		for _, bx := range result.Boxes {
 			if bx.Equal(site) {
-				no = false
-				break
+				return false
 			}
 		}
-		if no {
-			result.Boxes = append(result.Boxes, site)
-		}
+		result.Boxes = append(result.Boxes, site)
 		return false
 	}
 
@@ -138,16 +155,12 @@ func (b *Bubble) canBomb(site maps.Site, result *BombResult) bool{
 	}
 
 	//如果该爆炸波没有碰到其他物体，则添加到爆炸点
-	no := true
 	for _, a := range result.Areas {
 		if a.Equal(site) {
-			no = true
-			break
+			return false
 		}
 	}
-	if no {
-		result.Areas = append(result.Areas, site)
-	}
+	result.Areas = append(result.Areas, site)
 
 	return true
 }

@@ -30,6 +30,8 @@ const (
 	exitRoom = "exitRoom"
 
 	BubbleBomb = "bomb"
+	Move = "move"
+	ChangeUserStatus = "changeUserStatus"
 
 )
 

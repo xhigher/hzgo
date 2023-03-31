@@ -3,6 +3,7 @@ package logic
 import (
 	"github.com/xhigher/hzgo/games/live_game/maps"
 	"math/rand"
+	"time"
 )
 
 type PropType int
@@ -20,6 +21,7 @@ type Prop struct {
 	site maps.Site
 	typ PropType
 	roomId int
+	disappearTime time.Time
 }
 type PropData struct {
 	Id int `json:"id"`

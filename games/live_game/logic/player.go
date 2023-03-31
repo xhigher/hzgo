@@ -4,8 +4,11 @@ import (
 	"github.com/xhigher/hzgo/games/live_game/events"
 	"github.com/xhigher/hzgo/games/live_game/maps"
 	"github.com/xhigher/hzgo/games/live_game/model/store"
+	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/server/ws"
 	"github.com/xhigher/hzgo/utils"
+	"math/rand"
+	"sort"
 	"time"
 )
 type PlayerStatus int
@@ -52,6 +55,7 @@ func NewPlayer(pipe *ws.Pipe, user store.UserInfo, role PlayerRole) *Player{
 		avatar: user.Avatar,
 		role: role,
 		pipe: pipe,
+		stepTime: playerStepTime,
 	}
 }
 
@@ -101,13 +105,16 @@ func (p *Player) SetSite(s maps.Site) {
 	p.curSite.X = s.X
 	p.curSite.Y = s.Y
 
+	logger.Infof("SetSite: id=%v, %v, %v", p.id, utils.JSONString(p.curSite), utils.JSONString(p.lastSite))
+
 	//判断该位置是否有道具，如果有，则吃掉
 	if yes, prop := p.room.ExistProp(p.curSite); yes {
+		logger.Infof("PickUpProp: id=%v, %v", p.id, utils.JSONString(prop.GetData()))
 		p.PickUpProp(prop)
 	}
 
 	msg := &ws.Message{
-		Event: events.MoveStop,
+		Event: events.Move,
 		Data: encodeMsgData(&MoveData{
 			I: p.id,
 			X:p.curSite.X,
@@ -118,6 +125,11 @@ func (p *Player) SetSite(s maps.Site) {
 	p.room.BroadcastMsg(msg)
 
 	//判断该位置是否有被泡住的玩家，如果有，让玩家死亡
+	for _, tp := range p.room.players {
+		if tp.IsTrapped() && tp.curSite.Equal(s) {
+			tp.Die()
+		}
+	}
 }
 
 func (p *Player) PickUpProp(o *Prop){
@@ -126,28 +138,26 @@ func (p *Player) PickUpProp(o *Prop){
 		if p.bubbleCount < 10 {
 			p.bubbleCount++
 		}
-		break
 	case PropPower:
 		if p.bubblePower < 10 {
 			p.bubblePower ++
 		}
-		break
 	case PropShoes:
 		if p.stepTime > 100 {
 			p.stepTime -= 20
 		}
-		break
 	case PropPin:
 		p.pinCount ++
-		break
 	}
 
+	logger.Infof("PickUpProp: %v", utils.JSONString(o))
 	//讲该道具放入玩家吃掉的道具数组中，死亡时爆出来。
 	p.props = append(p.props, o)
 	p.room.DisappearProp(o, true, p)
 }
 
 func (p *Player) CreateBubble() {
+	logger.Infof("CreateBubble: id=%v, %v", p.id, p.bubbleCount)
 	if p.status != PlayerActive || p.bubbleCount<=0 {
 		return
 	}
@@ -164,9 +174,16 @@ func (p *Player) CreateBubble() {
 		power:  p.bubblePower,
 		player: p,
 		room:   p.room,
-		ct:     utils.NowTime(),
+		State: BubbleAlive,
+		bombTime: time.Now().Add(bubbleBombDuration),
 	}
 	p.room.bubbles = append(p.room.bubbles, bubble)
+
+	msg := &ws.Message{
+		Event: events.CreateBubble,
+		Data: encodeMsgData(bubble.GetData()),
+	}
+	p.room.BroadcastMsg(msg)
 }
 
 func (p *Player) SendMsg(msg *ws.Message) {
@@ -179,7 +196,15 @@ func (p *Player) Die() {
 	if p.room == nil {
 		return
 	}
-	p.status = PlayerDied
+	p.ChangeStatus(PlayerDied)
+}
+
+func (p *Player) CheckDie(now time.Time) bool {
+	if p.IsTrapped() && now.After(p.dieTime){
+		p.Die()
+		return true
+	}
+	return false
 }
 
 //被泡住
@@ -187,7 +212,7 @@ func (p *Player) Trapped(){
 	if p.room == nil {
 		return
 	}
-	p.status = PlayerTrapped
+	p.ChangeStatus(PlayerTrapped)
 	p.moveStop()
 	p.dieTime = time.Now().Add(6*time.Second)
 }
@@ -216,12 +241,76 @@ func (p *Player) moveStop(){
 	}
 }
 
+func (p *Player) ChangeStatus(status PlayerStatus){
+	if p.status == status {
+		return
+	}
+	p.status = status
+	msg := &ws.Message{
+		Event: events.ChangeUserStatus,
+		Data: encodeMsgData(&ChangeUserStatusData{
+			Id: p.id,
+			//Index:p.index,
+			X:p.curSite.X,
+			Y: p.curSite.Y,
+			Status: int(p.status),
+		}),
+	}
+	p.room.BroadcastMsg(msg)
+}
+
 func (p *Player) usePin(){
 	if p.status ==PlayerTrapped && p.pinCount > 0 {
 		p.pinCount --
 		p.dieTime = time.Time{}
-		p.status = PlayerActive
+		p.ChangeStatus(PlayerActive)
 	}
+}
+
+func (p *Player) GetPropsWithDead() (props []*Prop){
+	propCount := len(p.props)
+	if propCount == 0{
+		return
+	}
+	tempProps := p.props
+	if propCount >= 3 {
+		sort.SliceStable(tempProps, func(i, j int) bool {
+			return rand.Intn(10) < 5
+		})
+		tempProps = tempProps[0:3]
+	}
+
+	var nearSites []maps.Site
+	for i:=-3;i<=3;i++ {
+		for j := -3; j <= 3; j++ {
+			if i != 0 && j != 0 {
+				site := maps.Site{
+					X:p.curSite.X+j,
+					Y:p.curSite.Y+i,
+				}
+				if p.room.mapData.IsValidSite(site) {
+					if !p.room.mapData.ExistBox(site) && !p.room.mapData.ExistObstacle(site){
+						nearSites = append(nearSites, site)
+					}
+				}
+			}
+		}
+	}
+	if len(nearSites) == 0 {
+		return
+	}
+
+	for i:=0;i<len(tempProps);i++ {
+		if i< len(nearSites){
+			tempProps[i].site = nearSites[i]
+			tempProps[i].disappearTime = time.Now().Add(propAppearDuration)
+			p.room.props = append(p.room.props, tempProps[i])
+			props = append(props, tempProps[i])
+		}
+	}
+
+
+	return
 }
 
 func (p *Player) reset(){

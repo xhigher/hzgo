@@ -77,15 +77,16 @@ func (p *Pipe) writePump() {
 			if err != nil {
 				return
 			}
+			logger.Infof("writePump: %v", string(mbs))
 
 			w.Write(mbs)
 
 			// Add queued chat messages to the current websocket message.
-			n := len(p.send)
-			for i := 0; i < n; i++ {
-				w.Write(newline)
-				w.Write(<-p.send)
-			}
+			//n := len(p.send)
+			//for i := 0; i < n; i++ {
+			//	w.Write(newline)
+			//	w.Write(<-p.send)
+			//}
 
 			if err = w.Close(); err != nil {
 				return
@@ -113,6 +114,7 @@ func (p *Pipe) SendMessage(msg *Message){
 		logger.Errorf("error: %v", err)
 		return
 	}
+	logger.Infof("SendMessage: %v", string(mbs))
 	p.send <- mbs
 }
 

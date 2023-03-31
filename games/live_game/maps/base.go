@@ -63,6 +63,13 @@ func (m MapData) GetValidSites(origins []Site) (results []Site){
 	return
 }
 
+func (m MapData) IsValidSite(s Site) bool {
+	if s.X >= 0 && s.Y >= 0 && s.X < m.Size.Height && s.Y < m.Size.Width {
+		return true
+	}
+	return false
+}
+
 func (m MapData) ExistObstacle(s Site) bool{
 	if m.Obstacles[s.Y] != nil && m.Obstacles[s.Y][s.X]==1 {
 		return true

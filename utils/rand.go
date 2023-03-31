@@ -14,6 +14,10 @@ func RandInt32(start, end int32) int32 {
 	return rand.Int31n(end-start) + start
 }
 
+func RandInt(start, end int) int {
+	return rand.Intn(end-start) + start
+}
+
 func RandString(size int) string {
 	bytes := make([]byte, size)
 	for i := 0; i < size; i++ {

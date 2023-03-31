@@ -8,6 +8,7 @@ import (
 	"github.com/xhigher/hzgo/server/ws"
 	"github.com/xhigher/hzgo/utils"
 	"math/rand"
+	"sort"
 	"time"
 )
 
@@ -87,19 +88,6 @@ func NewRoom(id int, playerCount int) *Room{
 			},
 		},
 	}
-
-	//r.context, r.closeFunc = context.WithCancel(m.roomContext)
-	//
-	//go func() {
-	//	for {
-	//		select {
-	//		case <-r.context.Done():
-	//
-	//			return
-	//		}
-	//	}
-	//}()
-
 	return r
 }
 
@@ -144,9 +132,68 @@ func (r *Room) handleTimerEvent(now time.Time){
 	if r.status != Ongoing {
 		return
 	}
-	if now.After(r.endTime) {
+	r.handleProps(now)
+	r.handleBubbleBomb(now)
+	if r.checkPlayerDie(now){
+		r.checkRoundOver()
+	}
+
+	//if now.After(r.endTime) {
+	//	r.status = Ended
+	//	r.handleResult()
+	//}
+
+}
+
+func (r *Room) handleProps(now time.Time){
+	for _, b := range r.props {
+		if now.After(b.disappearTime) {
+
+		}
+	}
+}
+
+func (r *Room) handleBubbleBomb(now time.Time){
+	for _, b := range r.bubbles {
+		r.checkBubbleBomb(b, now)
+	}
+}
+
+func (r *Room) checkPlayerDie(now time.Time) bool {
+	yes := false
+	for _, p := range r.players {
+		if p.CheckDie(now){
+			r.aliveNum --
+			yes = true
+		}
+	}
+	return yes
+}
+
+func (r *Room) checkRoundOver() {
+	if r.aliveNum <= 1 {
 		r.status = Ended
-		r.handleResult()
+		results := make([]RoundOverResult, len(r.players))
+		for i, p := range r.players {
+			win := 0
+			if p.IsPlaying(){
+				win = 1
+			}
+			results[i] = RoundOverResult{
+				Player: p.id,
+				Index: i,
+				Win: win,
+			}
+		}
+		msg := &ws.Message{
+			Event: events.GameOver,
+			Data: encodeMsgData(&RoundOverData{
+				Result: results,
+				Win: 5,
+				Lose: -5,
+			}),
+		}
+		r.BroadcastMsg(msg)
 	}
 }
 
@@ -174,6 +221,9 @@ func (r *Room) Finish(){
 }
 
 func (r *Room) JoinPlayer(player *Player){
+	player.pinCount = 1
+	player.bubbleCount = 2
+	player.bubblePower = 1
 	player.room = r
 	r.players = append(r.players, player)
 }
@@ -215,6 +265,17 @@ func (r Room) SendPlayerMsg(p *Player, msg *ws.Message){
 
 func (r *Room) RoundStart(){
 	r.status = Reading
+	bornSites := r.mapData.BornSites
+	sort.SliceStable(bornSites, func(i, j int) bool {
+		return utils.RandInt(0,100)<50
+	})
+
+	//给玩家赋值初始坐标
+	for i, p := range r.players {
+		p.curSite = bornSites[i]
+		p.lastSite = bornSites[i]
+	}
+
 	data := &RoundStartData{
 		RoomId: r.id,
 		Type:    r.typ,
@@ -297,14 +358,12 @@ func (r *Room) HasHumanPlayer() bool{
 	return false
 }
 
-func (r *Room) BombBubble(id int){
-	result := &BombResult{}
-	for _, b := range r.bubbles {
-		if b.Id == id {
-			b.Bomb(result)
-			break
-		}
+func (r *Room) checkBubbleBomb(b *Bubble, now time.Time){
+	result := b.CheckBomb(now)
+	if result == nil {
+		return
 	}
+
 	//在地图中销毁需要销毁的箱子
 	r.destroyBoxes(result)
 
