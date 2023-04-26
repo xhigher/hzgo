@@ -114,14 +114,14 @@ type ServerUserInfoResp struct {
 }
 
 type UserInfo struct {
-	OpenId    string      `json:"openId"`
-	NickName  string      `json:"nickName"`
-	Gender    int `json:"gender"`
-	City      string      `json:"city"`
-	Province  string      `json:"province"`
-	Country   string      `json:"country"`
-	AvatarUrl string      `json:"avatarUrl"`
-	UnionId   string      `json:"unionId"`
+	OpenId    string `json:"openId"`
+	NickName  string `json:"nickName"`
+	Gender    int    `json:"gender"`
+	City      string `json:"city"`
+	Province  string `json:"province"`
+	Country   string `json:"country"`
+	AvatarUrl string `json:"avatarUrl"`
+	UnionId   string `json:"unionId"`
 	Watermark struct {
 		Appid     string      `json:"appid"`
 		Timestamp interface{} `json:"timestamp"`
