@@ -183,7 +183,6 @@ func DecryptMiniAppUserData(sessionKey, encryptedData, iv string) (data *UserInf
 		return
 	}
 	dataBytes, err := utils.AesDecrypt(decodeBytes, sessionKeyBytes, ivBytes)
-	logger.Infof("dataBytes: %v", dataBytes)
 	if err != nil {
 		logger.Errorf("error: %v", err)
 		return
