@@ -1,7 +1,5 @@
 package defines
 
-import "github.com/xhigher/hzgo/demo/model/db/misc"
-
 type UseridData struct {
 	Userid string `json:"userid"`
 }
@@ -20,5 +18,5 @@ type PageData struct {
 
 type ConfigListData struct {
 	Sum  string                      `json:"sum"`
-	Data map[string]*misc.ConfigInfo `json:"data"`
+	Data map[string]interface{} `json:"data"`
 }

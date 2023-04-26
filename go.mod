@@ -14,6 +14,7 @@ require (
 	github.com/alibabacloud-go/tea-utils/v2 v2.0.1
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.6+incompatible
 	github.com/cloudwego/hertz v0.4.2
+	github.com/ddliu/go-httpclient v0.7.1
 	github.com/gin-gonic/gin v1.8.2
 	github.com/go-pay/gopay v1.5.88
 	github.com/go-redis/redis/v8 v8.11.5
@@ -24,7 +25,6 @@ require (
 	github.com/hertz-contrib/registry/consul v0.0.0-20230207051619-7ff71fed629c
 	github.com/hertz-contrib/websocket v0.0.1
 	github.com/spf13/viper v1.14.0
-	github.com/uber-go/atomic v1.4.0
 	go.uber.org/zap v1.23.0
 	gorm.io/driver/mysql v1.4.5
 	gorm.io/gorm v1.24.3
