@@ -10,16 +10,16 @@ import (
 	"github.com/go-pay/gopay/pkg/aes"
 	"github.com/go-pay/gopay/pkg/xlog"
 	"github.com/go-pay/gopay/wechat/v3"
+	"net/http"
+	"time"
 	"github.com/xhigher/hzgo/config"
 	"github.com/xhigher/hzgo/env"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/utils"
-	"net/http"
-	"time"
 )
 
 type WxPayClient struct {
-	client *wechat.ClientV3
+	client    *wechat.ClientV3
 	notifyUrl string
 	supportH5 bool
 }

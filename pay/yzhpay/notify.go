@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"github.com/xhigher/hzgo/consts"
 	"github.com/xhigher/hzgo/logger"
-	"strconv"
 )
 
 type OrderNotifyParams struct {
@@ -75,7 +75,7 @@ func (c *Client) OrderCallBack(params *OrderNotifyParams) (result *OrderNotifyRe
 	// status == "9" 退汇， 只有银行卡提现时可能会出现（银行卡支付的最终状态，需核实用户卡信息）
 	// status == "15" 取消支付，表示待支付（暂停处理）订单数据被商户主动取消（最终状态，此状态无需做处理）
 	info := "其它原因"
-	status,_ := strconv.Atoi(data.Data.Status)
+	status, _ := strconv.Atoi(data.Data.Status)
 	if status == OrderSuccess {
 		// 支付成功，但是银行卡可能存在退汇情况，会导致支付先成功后退汇（对于银行卡支付是中间状态，对于支付宝和微信支付是最终状态）
 		result.Status = consts.WithdrawalStatusSuccess

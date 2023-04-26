@@ -23,4 +23,3 @@ func (ctrl Controller) Userid(c *app.RequestContext) (userid string, ok bool) {
 	ok = true
 	return
 }
-

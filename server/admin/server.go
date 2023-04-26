@@ -57,9 +57,9 @@ func (s *HzgoServer) InitRouters(mgr ModuleManager) {
 	}
 }
 
-func (s *HzgoServer) initPlatformModuleRouters(mgr ModuleManager){
+func (s *HzgoServer) initPlatformModuleRouters(mgr ModuleManager) {
 	m := PlatformModule{
-		ctrl: mgr.BaseController(),
+		ctrl:    mgr.BaseController(),
 		handler: mgr.PlatformHandler(),
 	}
 	for _, r := range m.Routers() {

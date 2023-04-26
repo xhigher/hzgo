@@ -6,10 +6,10 @@ import (
 
 const (
 	RoleMaintainer = "maintainer" // 超管
-	RoleDeveloper = "developer" // 开发
-	RoleOperator = "operator"  // 运营
-	RoleTreasurer = "treasurer" // 财务
-	RoleCustomer = "customer"  // 客服
+	RoleDeveloper  = "developer"  // 开发
+	RoleOperator   = "operator"   // 运营
+	RoleTreasurer  = "treasurer"  // 财务
+	RoleCustomer   = "customer"   // 客服
 )
 
 type CRUDType int
@@ -18,16 +18,16 @@ const (
 	CRUDCreate CRUDType = 1
 	CRUDDelete CRUDType = 2
 	CRUDUpdate CRUDType = 3
-	CRUDRead CRUDType = 4
-	CRUDWrite CRUDType = 5
+	CRUDRead   CRUDType = 4
+	CRUDWrite  CRUDType = 5
 )
 
 type CRUD struct {
 	create bool `json:"create"`
 	delete bool `json:"delete"`
 	update bool `json:"update"`
-	read bool `json:"read"`
-	write bool `json:"write"` //contains create,delete,update
+	read   bool `json:"read"`
+	write  bool `json:"write"` //contains create,delete,update
 }
 
 func (m CRUD) Create() bool {
@@ -52,30 +52,28 @@ var (
 		create: true,
 		delete: true,
 		update: true,
-		read: true,
-		write: true,
+		read:   true,
+		write:  true,
 	}
 
 	CRUDReadonly = CRUD{
 		create: false,
 		delete: false,
 		update: false,
-		read: true,
-		write: false,
+		read:   true,
+		write:  false,
 	}
-
 )
 
-
-var rolePermissions = map[string]map[string]CRUD {
+var rolePermissions = map[string]map[string]CRUD{
 	RoleMaintainer: {},
-	RoleDeveloper: {},
-	RoleOperator: {},
-	RoleTreasurer: {},
-	RoleCustomer: {},
+	RoleDeveloper:  {},
+	RoleOperator:   {},
+	RoleTreasurer:  {},
+	RoleCustomer:   {},
 }
 
-func InitRolePermissions(role string, permissions map[string]CRUD){
+func InitRolePermissions(role string, permissions map[string]CRUD) {
 	rolePermissions[role] = permissions
 }
 
@@ -89,7 +87,7 @@ func getModulePermission(role, module string) CRUD {
 func CheckRoles(roles types.StringArray) bool {
 	if len(roles) > 0 {
 		for _, r := range roles {
-			if _,ok := rolePermissions[r]; !ok {
+			if _, ok := rolePermissions[r]; !ok {
 				return false
 			}
 		}

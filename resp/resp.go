@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cloudwego/hertz/pkg/app"
+	"net/http"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/utils"
-	"net/http"
 )
 
 var (
@@ -21,16 +21,15 @@ var (
 
 	ErrorAuthorization = NewMsg(201, "您的账号未登录")
 	ErrorUserNull      = NewMsg(202, "您的账号未注册")
-	ErrorUserExists   = NewMsg(203, "您的账号已注册")
-	ErrorUserCanceled    = NewMsg(204, "您的账号已注销")
-	ErrorUserBlocked     = NewMsg(205, "您的账号已封禁")
+	ErrorUserExists    = NewMsg(203, "您的账号已注册")
+	ErrorUserCanceled  = NewMsg(204, "您的账号已注销")
+	ErrorUserBlocked   = NewMsg(205, "您的账号已封禁")
 	ErrorUserLogout    = NewMsg(206, "您的账号被踢出登录")
-
 )
 
 type BaseResp struct {
-	Code int32       `json:"code"`
-	Msg  string      `json:"msg"`
+	Code int32           `json:"code"`
+	Msg  string          `json:"msg"`
 	Data json.RawMessage `json:"data"`
 }
 
@@ -72,9 +71,9 @@ type TraceLogSaver interface {
 }
 
 type Responder struct {
-	Ctx *app.RequestContext
+	Ctx      *app.RequestContext
 	LogSaver TraceLogSaver
-	LogOut bool
+	LogOut   bool
 }
 
 func (r Responder) ReplyOK() {
@@ -160,8 +159,7 @@ func (r Responder) Reply(code int32, msg string, data interface{}) {
 	})
 }
 
-
-func (r Responder) abortWithJSON(resp BaseResp){
+func (r Responder) abortWithJSON(resp BaseResp) {
 	if r.LogOut {
 		params := map[string]interface{}{}
 		r.Ctx.Bind(&params)
@@ -170,5 +168,5 @@ func (r Responder) abortWithJSON(resp BaseResp){
 	if r.LogSaver != nil {
 		r.LogSaver.AddLog(r.Ctx, resp)
 	}
-	r.Ctx.AbortWithStatusJSON(http.StatusOK,resp)
+	r.Ctx.AbortWithStatusJSON(http.StatusOK, resp)
 }

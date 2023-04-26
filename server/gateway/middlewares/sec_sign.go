@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	BaseParamsHeaderKey   = "X-BaseParams"
+	BaseParamsHeaderKey = "X-BaseParams"
 )
 
 var (
@@ -22,16 +22,13 @@ var (
 )
 
 type SecSign struct {
-
 	signature *utils.Signature
 }
-
 
 func NewSecSign(conf *config.SecConfig) *SecSign {
 	if len(conf.SignSecret) == 0 {
 		panic(ErrMissingSecretKey)
 	}
-
 
 	signature := utils.NewSignature(conf.SignSecret, conf.SignKeyName)
 	signature.UseReflect(true)
@@ -43,22 +40,23 @@ func NewSecSign(conf *config.SecConfig) *SecSign {
 
 func (mw *SecSign) Verify() app.HandlerFunc {
 	return func(ctx context.Context, c *app.RequestContext) {
+		_resp := resp.Responder{Ctx: c}
 		baseParams, err := mw.getBaseParamsFromHeader(ctx, c)
 		if err != nil {
 			logger.Errorf("getBaseParamsFromHeader error: %v", err)
-			resp.ReplyErrorIllegal(c)
+			_resp.ReplyErrorIllegal()
 			return
 		}
 		logger.Infof("getBaseParamsFromHeader params: %v", baseParams)
 		if len(baseParams.Sign) != 32 {
-			resp.ReplyErrorIllegal(c)
+			_resp.ReplyErrorIllegal()
 			return
 		}
 
 		ok, err := mw.signature.Verify(baseParams)
 		if err != nil || !ok {
 			logger.Errorf("getBaseParamsFromHeader error: %v", err)
-			resp.ReplyErrorIllegal(c)
+			_resp.ReplyErrorIllegal()
 			return
 		}
 
@@ -71,20 +69,19 @@ func (mw *SecSign) Verify() app.HandlerFunc {
 func (mw *SecSign) getBaseParamsFromHeader(ctx context.Context, c *app.RequestContext) (params *defines.BaseParams, err error) {
 	baseParamsHeader := c.Request.Header.Get(BaseParamsHeaderKey)
 
-	if len(baseParamsHeader)== 0{
-		err =ErrEmptyBaseParamsHeader
+	if len(baseParamsHeader) == 0 {
+		err = ErrEmptyBaseParamsHeader
 		return
 	}
 
 	bytes, err := base64.StdEncoding.DecodeString(baseParamsHeader)
-	if err != nil{
+	if err != nil {
 		return
 	}
 
 	err = json.Unmarshal(bytes, &params)
-	if err != nil{
+	if err != nil {
 		return
 	}
 	return
 }
-

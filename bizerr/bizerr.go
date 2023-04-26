@@ -10,34 +10,34 @@ type ErrType string
 
 type Error struct {
 	Type ErrType
-	Err error
+	Err  error
 }
 
 const (
-	typeNotFound = "not_found"
+	typeNotFound      = "not_found"
 	typeAlreadyExists = "already_exists"
 	typePasswordWrong = "password_wrong"
 
-	typeUserNull = "user_null"
-	typeUserExists = "user_exists"
-	typeUserBlocked = "user_blocked"
+	typeUserNull     = "user_null"
+	typeUserExists   = "user_exists"
+	typeUserBlocked  = "user_blocked"
 	typeUserCanceled = "user_canceled"
 )
 
 var (
 	errTypeMsgMap = map[ErrType]string{
-		typeNotFound:"记录不存在",
-		typePasswordWrong:"密码错误",
-		typeUserNull:"用户不存在",
-		typeUserExists:"用户已存在",
-		typeUserBlocked:"用户已封禁",
-		typeUserCanceled:"用户已注销",
+		typeNotFound:      "记录不存在",
+		typePasswordWrong: "密码错误",
+		typeUserNull:      "用户不存在",
+		typeUserExists:    "用户已存在",
+		typeUserBlocked:   "用户已封禁",
+		typeUserCanceled:  "用户已注销",
 	}
 )
 
-func New(err error) *Error{
+func New(err error) *Error {
 	return &Error{
-		Err:err,
+		Err: err,
 	}
 }
 
@@ -51,67 +51,67 @@ func newErr(typ ErrType, msg string) error {
 	return errors.New(msg)
 }
 
-func NotFound(msg string) *Error{
+func NotFound(msg string) *Error {
 	return &Error{
-		Type:typeNotFound,
-		Err: newErr(typeNotFound, msg),
+		Type: typeNotFound,
+		Err:  newErr(typeNotFound, msg),
 	}
 }
 
-func AlreadyExists(msg string) *Error{
+func AlreadyExists(msg string) *Error {
 	return &Error{
-		Type:typeAlreadyExists,
-		Err: newErr(typeAlreadyExists, msg),
+		Type: typeAlreadyExists,
+		Err:  newErr(typeAlreadyExists, msg),
 	}
 }
 
-func PasswordWrong(msg string) *Error{
+func PasswordWrong(msg string) *Error {
 	return &Error{
-		Type:typePasswordWrong,
-		Err: newErr(typePasswordWrong, msg),
+		Type: typePasswordWrong,
+		Err:  newErr(typePasswordWrong, msg),
 	}
 }
 
-func UserNull() *Error{
+func UserNull() *Error {
 	return &Error{
-		Type:typePasswordWrong,
-		Err: newErr(typePasswordWrong, ""),
+		Type: typePasswordWrong,
+		Err:  newErr(typePasswordWrong, ""),
 	}
 }
 
-func UserExists() *Error{
+func UserExists() *Error {
 	return &Error{
-		Type:typeUserExists,
-		Err: newErr(typeUserExists, ""),
+		Type: typeUserExists,
+		Err:  newErr(typeUserExists, ""),
 	}
 }
 
-func UserBlocked() *Error{
+func UserBlocked() *Error {
 	return &Error{
-		Type:typeUserBlocked,
-		Err: newErr(typeUserBlocked, ""),
+		Type: typeUserBlocked,
+		Err:  newErr(typeUserBlocked, ""),
 	}
 }
 
-func UserCanceled() *Error{
+func UserCanceled() *Error {
 	return &Error{
-		Type:typeUserCanceled,
-		Err: newErr(typeUserCanceled, ""),
+		Type: typeUserCanceled,
+		Err:  newErr(typeUserCanceled, ""),
 	}
 }
 
-func (e *Error) String() string{
+func (e *Error) String() string {
 	return fmt.Sprintf("{type:%s, err:%v}", e.Type, e.Err)
 }
 
-func (e *Error) ToResp() resp.BaseResp{
+func (e *Error) ToResp() resp.BaseResp {
 	if len(e.Type) == 0 {
 		if e.Err == nil {
 			return resp.ErrorInternal
 		}
 		return resp.BaseResp{
 			Code: resp.ErrorInternal.Code,
-			Msg: fmt.Sprintf("%s: %s", resp.ErrorInternal.Msg,e.Err.Error()),
+			Msg:  fmt.Sprintf("%s: %s", resp.ErrorInternal.Msg, e.Err.Error()),
 		}
 	}
 	return resp.BaseResp{

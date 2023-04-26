@@ -6,10 +6,10 @@ import (
 	"encoding/base64"
 	"errors"
 	"github.com/go-redis/redis/v8"
-	"github.com/xhigher/hzgo/logger"
 	"io"
 	"sync/atomic"
 	"time"
+	"github.com/xhigher/hzgo/logger"
 )
 
 var (
@@ -251,5 +251,3 @@ func (r *exponentialBackoff) NextBackoff() time.Duration {
 		return d
 	}
 }
-
-

@@ -7,9 +7,9 @@ import (
 	"github.com/cloudwego/hertz/pkg/common/json"
 	"github.com/cloudwego/hertz/pkg/protocol"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
+	"time"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/resp"
-	"time"
 )
 
 var (
@@ -19,7 +19,7 @@ var (
 type SvcConf struct {
 	Name     string
 	AddrList []string
-	Timeout time.Duration
+	Timeout  time.Duration
 }
 
 type ActionResult struct {
@@ -49,7 +49,7 @@ func Init(confs []SvcConf) {
 	}
 }
 
-func GetClient(name string) *SvcClient{
+func GetClient(name string) *SvcClient {
 	return svcClients[name]
 }
 
@@ -68,9 +68,9 @@ func newClient(name, addr string, timeout time.Duration) *SvcClient {
 	}
 	logger.Infof("svc client [%v] init done", name)
 	return &SvcClient{
-		Name: name,
-		Addr: addr,
-		cli:  cli,
+		Name:    name,
+		Addr:    addr,
+		cli:     cli,
 		Timeout: timeout,
 	}
 }

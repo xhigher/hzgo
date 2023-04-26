@@ -6,62 +6,61 @@ import (
 	"github.com/cloudwego/hertz/pkg/app/client"
 	"github.com/cloudwego/hertz/pkg/protocol"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
-	"github.com/xhigher/hzgo/srd"
 	urllib "net/url"
+	"github.com/xhigher/hzgo/srd"
 
-	"github.com/xhigher/hzgo/logger"
 	"time"
+	"github.com/xhigher/hzgo/logger"
 )
 
 const (
 	contentTypeJSON = "application/json"
 	contentTypeForm = "application/x-www-form-urlencoded"
-	contentTypeXML = "application/xml"
+	contentTypeXML  = "application/xml"
 )
 
 type HttpCli struct {
-	client     *client.Client
+	client  *client.Client
 	timeout time.Duration
 }
 
-
-func New(timeout time.Duration) *HttpCli{
+func New(timeout time.Duration) *HttpCli {
 	c, err := client.NewClient()
 	if err != nil {
 		logger.Errorf("http cli new error: %v", err)
 		return nil
 	}
-	if ok,discovery := srd.GetDiscovery(); ok {
+	if ok, discovery := srd.GetDiscovery(); ok {
 		c.Use(discovery)
 	}
 
 	return &HttpCli{
-		client: c,
+		client:  c,
 		timeout: timeout,
 	}
 }
 
-func (cli *HttpCli) GetJSON(url string, result interface{}) (err error){
+func (cli *HttpCli) GetJSON(url string, result interface{}) (err error) {
 	_, err = cli.BaseGetJSON(url, nil, nil, result)
 	return
 }
 
-func (cli *HttpCli) GetJSON2(url string, params map[string]string, result interface{}) (err error){
+func (cli *HttpCli) GetJSON2(url string, params map[string]string, result interface{}) (err error) {
 	_, err = cli.BaseGetJSON(url, nil, params, result)
 	return
 }
 
-func (cli *HttpCli) PostJSON(url string, data, result interface{}) (err error){
+func (cli *HttpCli) PostJSON(url string, data, result interface{}) (err error) {
 	_, err = cli.BasePostJSON(url, nil, data, result)
 	return
 }
 
-func (cli *HttpCli) PostForm(url string, data map[string]string, result interface{}) (err error){
+func (cli *HttpCli) PostForm(url string, data map[string]string, result interface{}) (err error) {
 	_, err = cli.BasePostForm(url, nil, data, result)
 	return
 }
 
-func (cli *HttpCli) BaseGetJSON(url string, headers, params map[string]string, result interface{}) (bs string, err error){
+func (cli *HttpCli) BaseGetJSON(url string, headers, params map[string]string, result interface{}) (bs string, err error) {
 	if cli.client == nil {
 		logger.Errorf("http cli get error: client nil")
 		return
@@ -74,7 +73,7 @@ func (cli *HttpCli) BaseGetJSON(url string, headers, params map[string]string, r
 	}
 	values := urlSt.Query()
 	for k, v := range params {
-		values.Set(k,v)
+		values.Set(k, v)
 	}
 	urlSt.RawQuery = values.Encode()
 	url = urlSt.String()
@@ -104,7 +103,7 @@ func (cli *HttpCli) BaseGetJSON(url string, headers, params map[string]string, r
 	return
 }
 
-func (cli *HttpCli) BasePostJSON(url string, headers map[string]string, data, result interface{}) (bs string, err error){
+func (cli *HttpCli) BasePostJSON(url string, headers map[string]string, data, result interface{}) (bs string, err error) {
 	if cli.client == nil {
 		logger.Errorf("http cli post error: client nil")
 		return
@@ -143,7 +142,7 @@ func (cli *HttpCli) BasePostJSON(url string, headers map[string]string, data, re
 	return
 }
 
-func (cli *HttpCli) BasePostForm(url string, headers, data map[string]string, result interface{}) (bs string, err error){
+func (cli *HttpCli) BasePostForm(url string, headers, data map[string]string, result interface{}) (bs string, err error) {
 	if cli.client == nil {
 		logger.Errorf("http cli post error: client nil")
 		return

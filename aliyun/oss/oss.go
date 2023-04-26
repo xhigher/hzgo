@@ -6,14 +6,14 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/xhigher/hzgo/consts"
-	"github.com/xhigher/hzgo/env"
-	"github.com/xhigher/hzgo/logger"
 	"hash"
 	"io"
 	"net/http"
 	"strings"
 	"time"
+	"github.com/xhigher/hzgo/consts"
+	"github.com/xhigher/hzgo/env"
+	"github.com/xhigher/hzgo/logger"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 )
@@ -78,7 +78,7 @@ var (
 	ossInternalClient *oss.Client
 )
 
-func Init(conf *OssConfig) (err error){
+func Init(conf *OssConfig) (err error) {
 	ossConfig = conf
 	if ossClient == nil {
 		ossClient, err = oss.New(GetOssEndpoint(), ossConfig.AccessKeyId, ossConfig.AccessKeySecret)

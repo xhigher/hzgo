@@ -2,12 +2,12 @@ package test
 
 import (
 	"fmt"
-	"github.com/xhigher/hzgo/utils"
 	"testing"
+	"github.com/xhigher/hzgo/utils"
 )
 
 type StructA struct {
-	Id string
+	Id   string
 	Name string
 }
 
@@ -19,15 +19,15 @@ type StructB struct {
 func TestStruct(t *testing.T) {
 	sb1 := &StructB{
 		&StructA{
-			Id: "1",
-			Name:"aaaa",
+			Id:   "1",
+			Name: "aaaa",
 		},
 		"1",
 	}
 	sb2 := &StructB{
 		&StructA{
-			Id: "1",
-			Name:"aaaa",
+			Id:   "1",
+			Name: "aaaa",
 		},
 		"1",
 	}
@@ -40,11 +40,11 @@ func TestStruct(t *testing.T) {
 	blist = append(blist, sb1)
 	blist = append(blist, sb2)
 
-	for _,st := range alist {
+	for _, st := range alist {
 		fmt.Println("alist", utils.JSONString(st))
 	}
 
-	for _,st := range blist {
+	for _, st := range blist {
 		fmt.Println("blist", utils.JSONString(st))
 	}
 }

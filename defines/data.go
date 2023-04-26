@@ -12,13 +12,13 @@ type TokenData struct {
 }
 
 type PageData struct {
-	Total int32 `json:"total"`
-	Data interface{} `json:"data"`
-	Offset int32 `json:"offset"`
-	Limit int32 `json:"limit"`
+	Total  int32       `json:"total"`
+	Data   interface{} `json:"data"`
+	Offset int32       `json:"offset"`
+	Limit  int32       `json:"limit"`
 }
 
 type ConfigListData struct {
-	Sum string `json:"sum"`
+	Sum  string                      `json:"sum"`
 	Data map[string]*misc.ConfigInfo `json:"data"`
 }

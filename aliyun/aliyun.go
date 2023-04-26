@@ -9,12 +9,12 @@ import (
 )
 
 type AliyunConfig struct {
-	Sms        *sms.SmsConfig
-	Oss *oss.OssConfig
+	Sms     *sms.SmsConfig
+	Oss     *oss.OssConfig
 	Certify *certify.CertifyConfig
 }
 
-func Init(conf *AliyunConfig) (err error){
+func Init(conf *AliyunConfig) (err error) {
 	if conf == nil {
 		err = errors.New("error config nil")
 		logger.Errorf("aliyun init error: %v", err)

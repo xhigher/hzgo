@@ -25,20 +25,20 @@ type ModuleManager interface {
 }
 
 type PlatformModule struct {
-	ctrl *Controller
+	ctrl    *Controller
 	handler PlatformModuleHandler
 }
 
-func (md PlatformModule) Name() string{
+func (md PlatformModule) Name() string {
 	return "platform"
 }
 
-func (md PlatformModule) Routers() []Router{
+func (md PlatformModule) Routers() []Router {
 	return []Router{
 		{
 			Method:  consts.MethodPost,
 			Path:    "login",
-			NoAuth: true,
+			NoAuth:  true,
 			Handler: md.Login,
 		},
 		{
@@ -54,7 +54,7 @@ func (md PlatformModule) Routers() []Router{
 	}
 }
 
-func (md PlatformModule) Login(ctx context.Context, c *app.RequestContext){
+func (md PlatformModule) Login(ctx context.Context, c *app.RequestContext) {
 	md.handler.Login(ctx, c)
 }
 

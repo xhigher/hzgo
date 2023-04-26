@@ -1,4 +1,4 @@
-package gateway
+package game
 
 import (
 	"github.com/cloudwego/hertz/pkg/app"
@@ -7,14 +7,10 @@ import (
 
 type Router struct {
 	Method  consts.HttpMethod
-	Version int
 	Path    string
-	Auth    bool
-	Sign    bool
 	Handler app.HandlerFunc
 }
 
-type RouterManager interface {
+type API interface {
 	Routers() []Router
-	Name() string
 }

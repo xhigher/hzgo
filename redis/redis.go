@@ -2,10 +2,11 @@ package redis
 
 import (
 	"github.com/go-redis/redis/v8"
+	"strings"
 	"github.com/xhigher/hzgo/config"
 	"github.com/xhigher/hzgo/logger"
-	"strings"
 )
+
 //If you are using Redis 6, install go-redis/v8
 //If you are using Redis 7, install go-redis/v9
 

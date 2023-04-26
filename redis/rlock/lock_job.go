@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-redis/redis/v8"
+	"time"
 	"github.com/xhigher/hzgo/env"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/utils"
-	"time"
 )
 
 type LockJobOption struct {
@@ -70,7 +70,7 @@ type LockJob struct {
 func (l *LockJob) Start() {
 INIT:
 	l.ctx, l.cancel = context.WithCancel(context.Background())
-	l.text =  fmt.Sprintf("%d:%s",utils.NowTimeNano(), env.GetHostName())
+	l.text = fmt.Sprintf("%d:%s", utils.NowTimeNano(), env.GetHostName())
 	for {
 		res, err := l.client.SetNX(l.ctx, l.key, l.text, l.lockHoldInterval).Result()
 		if err != nil {

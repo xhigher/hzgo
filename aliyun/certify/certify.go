@@ -8,9 +8,9 @@ import (
 	tearpc "github.com/alibabacloud-go/tea-rpc/client"
 	teautils "github.com/alibabacloud-go/tea-utils/service"
 	"github.com/alibabacloud-go/tea/tea"
+	"strconv"
 	"github.com/xhigher/hzgo/consts"
 	"github.com/xhigher/hzgo/logger"
-	"strconv"
 )
 
 type CertifyConfig struct {

@@ -19,7 +19,7 @@ type ServerConfig struct {
 	Sec        *SecConfig     `mapstructure:"sec" json:"sec" yaml:"sec"`
 	Mysql      []*MysqlConfig `mapstructure:"mysql" json:"mysql" yaml:"mysql"`
 	Redis      []*RedisConfig `mapstructure:"redis" json:"redis" yaml:"redis"`
-	Srd *srd.Config `mapstructure:"srd" json:"srd" yaml:"srd"`
+	Srd        *srd.Config    `mapstructure:"srd" json:"srd" yaml:"srd"`
 }
 
 var (

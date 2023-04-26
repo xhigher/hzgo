@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/golang-jwt/jwt/v4"
+	"strings"
+	"time"
 	"github.com/xhigher/hzgo/bizerr"
 	"github.com/xhigher/hzgo/config"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/resp"
 	"github.com/xhigher/hzgo/utils"
-	"strings"
-	"time"
 )
 
 const (
@@ -36,11 +36,11 @@ var (
 )
 
 type Claims struct {
-	Subject string `json:"subject"`
-	Audience []string `json:"audience"`
-	ExpiredAt int64 `json:"expired_at"`
-	IssuedAt int64 `json:"issued_at"`
-	TokenId string `json:"token_id"`
+	Subject   string   `json:"subject"`
+	Audience  []string `json:"audience"`
+	ExpiredAt int64    `json:"expired_at"`
+	IssuedAt  int64    `json:"issued_at"`
+	TokenId   string   `json:"token_id"`
 }
 
 type Auth struct {
@@ -54,8 +54,6 @@ type Auth struct {
 	MaxRefreshTime time.Duration
 
 	CheckTokenFunc func(ctx context.Context, c *app.RequestContext, claims *Claims) (bool, *bizerr.Error)
-
-
 }
 
 func NewAuth(conf *config.JWTConfig) *Auth {
@@ -84,22 +82,22 @@ func NewAuth(conf *config.JWTConfig) *Auth {
 
 func (mw *Auth) Handler() app.HandlerFunc {
 	return func(ctx context.Context, c *app.RequestContext) {
-		resp := resp.Responder{Ctx: c}
+		_resp := resp.Responder{Ctx: c}
 		claims, err := mw.getClaimsFromToken(ctx, c)
 		if err != nil {
 			logger.Errorf("GetClaimsFromToken error: %v", err)
-			resp.ReplyErrorAuthorization()
+			_resp.ReplyErrorAuthorization()
 			return
 		}
 		logger.Infof("GetClaimsFromToken claims: %v", claims)
 		if claims.ExpiresAt == nil {
-			resp.ReplyErrorIllegal()
+			_resp.ReplyErrorIllegal()
 			return
 		}
 
 		if !claims.VerifyExpiresAt(time.Now(), true) {
 			logger.Errorf("VerifyExpiresAt: false")
-			resp.ReplyErrorAuthorization()
+			_resp.ReplyErrorAuthorization()
 			return
 		}
 
@@ -107,11 +105,11 @@ func (mw *Auth) Handler() app.HandlerFunc {
 			ok, be := mw.CheckTokenFunc(ctx, c, mw.getClaims(claims))
 			if be != nil {
 				logger.Errorf("error: %v", be.String())
-				resp.ReplyErr(be.ToResp())
+				_resp.ReplyErr(be.ToResp())
 				return
 			}
 			if !ok {
-				resp.ReplyErrorAuthorization()
+				_resp.ReplyErrorAuthorization()
 				return
 			}
 
@@ -177,7 +175,7 @@ func (mw *Auth) getClaims(claims *jwt.RegisteredClaims) *Claims {
 func (mw *Auth) CreateToken(c *app.RequestContext, subject string, audience []string) (tokenValue string, claims *Claims, err error) {
 	regClaims := &jwt.RegisteredClaims{
 		Issuer:   mw.Issuer,
-		Subject: subject,
+		Subject:  subject,
 		Audience: audience,
 		ID:       utils.MD5(fmt.Sprintf("%s-%s-%s", mw.Issuer, audience, utils.UUID())),
 	}
@@ -197,8 +195,8 @@ func (mw *Auth) CreateToken(c *app.RequestContext, subject string, audience []st
 	return
 }
 
-func (mw *Auth) RenewalToken(c *app.RequestContext) (tokenValue string, claims *Claims, err error){
-	resp := resp.Responder{Ctx: c}
+func (mw *Auth) RenewalToken(c *app.RequestContext) (tokenValue string, claims *Claims, err error) {
+	_resp := resp.Responder{Ctx: c}
 	tokenString := GetToken(c)
 	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(t *jwt.Token) (interface{}, error) {
 		if jwt.GetSigningMethod(SigningAlgorithm) != t.Method {
@@ -208,12 +206,12 @@ func (mw *Auth) RenewalToken(c *app.RequestContext) (tokenValue string, claims *
 		return mw.SecretKey, nil
 	})
 	if err != nil {
-		resp.ReplyErrorAuthorization()
+		_resp.ReplyErrorAuthorization()
 		return
 	}
 	regClaims := token.Claims.(*jwt.RegisteredClaims)
 	if !regClaims.VerifyIssuedAt(time.Now().Add(-mw.MaxRefreshTime), true) {
-		resp.ReplyErrorAuthorization()
+		_resp.ReplyErrorAuthorization()
 		return
 	}
 

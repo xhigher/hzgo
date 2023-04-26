@@ -2,13 +2,12 @@ package mysql
 
 import (
 	basemysql "github.com/go-sql-driver/mysql"
-	"github.com/xhigher/hzgo/config"
-	"github.com/xhigher/hzgo/logger"
-	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"moul.io/zapgorm2"
+	gormlog "gorm.io/gorm/logger"
 	"time"
+	"github.com/xhigher/hzgo/config"
+	"github.com/xhigher/hzgo/logger"
 )
 
 var (
@@ -55,10 +54,9 @@ func Init(configs []*config.MysqlConfig) {
 }
 
 func gormOptions(dbName string) *gorm.Config {
-	gormLogger := zapgorm2.New(logger.NewLogger().Named("gorm").With(zap.String("db", dbName)))
 	return &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
-		Logger:                                   gormLogger,
+		Logger:                                   newGormLogger(dbName),
 	}
 }
 
@@ -70,7 +68,7 @@ func DB(dbName string) *gorm.DB {
 }
 
 func StandbyDB(dbName string) *gorm.DB {
-	if db, ok := gormDBs[dbName+ ":standby"]; ok {
+	if db, ok := gormDBs[dbName+":standby"]; ok {
 		return db
 	}
 	return nil
@@ -88,4 +86,23 @@ func ErrDuplicateKey(err error) bool {
 		return true
 	}
 	return false
+}
+
+type LogPrinter struct {
+	dbName string
+}
+
+func (p LogPrinter) Printf(f string, v ...interface{}) {
+	logger.Infof("db: "+p.dbName+", "+f, v)
+}
+
+func newGormLogger(dbName string) gormlog.Interface {
+	return gormlog.New(LogPrinter{
+		dbName,
+	}, gormlog.Config{
+		SlowThreshold:             200 * time.Millisecond,
+		LogLevel:                  gormlog.Warn,
+		IgnoreRecordNotFoundError: false,
+		Colorful:                  true,
+	})
 }

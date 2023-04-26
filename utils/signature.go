@@ -3,51 +3,49 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/xhigher/hzgo/logger"
 	"reflect"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+	"github.com/xhigher/hzgo/logger"
 )
+
 type SignEncrypt int
+
 const (
-	SignMD5 SignEncrypt = 0
+	SignMD5      SignEncrypt = 0
 	SignHmacSha1 SignEncrypt = 1
 )
 
-
 type Signature struct {
-	secret string        // 签名secret
-	keySign string
+	secret       string // 签名secret
+	keySign      string
 	keyTimestamp string
-	duration       time.Duration // 签名有效时间，标准是120秒，也可按照业务标准来设置
-	reflect     bool          //是否使用reflect反射机制来转换请求参数到map，默认为false不使用，不使用就使用json来转换
-	encrypt SignEncrypt
+	duration     time.Duration // 签名有效时间，标准是120秒，也可按照业务标准来设置
+	reflect      bool          //是否使用reflect反射机制来转换请求参数到map，默认为false不使用，不使用就使用json来转换
+	encrypt      SignEncrypt
 }
-
-
 
 func NewDefaultSignature(secret string) *Signature {
 	return &Signature{
-		secret: secret,
-		keySign: "sign",
+		secret:       secret,
+		keySign:      "sign",
 		keyTimestamp: "",
-		duration: 0,
-		reflect:     false,
-		encrypt: SignMD5,
-
+		duration:     0,
+		reflect:      false,
+		encrypt:      SignMD5,
 	}
 }
 
 func NewSignature(secret string, keySign string) *Signature {
 	return &Signature{
-		secret: secret,
-		keySign: keySign,
+		secret:       secret,
+		keySign:      keySign,
 		keyTimestamp: "",
-		duration: 0,
-		reflect:     false,
-		encrypt: SignMD5,
+		duration:     0,
+		reflect:      false,
+		encrypt:      SignMD5,
 	}
 }
 
@@ -98,7 +96,7 @@ func (s *Signature) Sign(params interface{}) (string, error) {
 	var sign string
 	if s.encrypt == SignHmacSha1 {
 		sign = EncryptHmacSha1(signStr, s.secret)
-	}else{
+	} else {
 		sign = MD5(fmt.Sprintf("%s:%s", signStr, s.secret))
 	}
 	return sign, nil

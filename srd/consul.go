@@ -4,11 +4,11 @@ import (
 	"fmt"
 	consulapi "github.com/hashicorp/consul/api"
 	"github.com/hertz-contrib/registry/consul"
-	"github.com/xhigher/hzgo/env"
 	"log"
+	"github.com/xhigher/hzgo/env"
 )
 
-func (mgr *Manager) initConsul(conf *ConsulConfig) (err error){
+func (mgr *Manager) initConsul(conf *ConsulConfig) (err error) {
 	if len(conf.ServerAddr) == 0 {
 		log.Fatal(err)
 		return
@@ -29,7 +29,7 @@ func (mgr *Manager) initConsul(conf *ConsulConfig) (err error){
 	return
 }
 
-func (mgr *Manager) initConsulRegistry(conf *ConsulConfig) (err error){
+func (mgr *Manager) initConsulRegistry(conf *ConsulConfig) (err error) {
 	config := consulapi.DefaultConfig()
 	config.Address = conf.ServerAddr
 	consulClient, err := consulapi.NewClient(config)
@@ -47,12 +47,12 @@ func (mgr *Manager) initConsulRegistry(conf *ConsulConfig) (err error){
 		return
 	}
 
-	mgr.localAddr = fmt.Sprintf("%s:%d",localIP, conf.LocalPort)
+	mgr.localAddr = fmt.Sprintf("%s:%d", localIP, conf.LocalPort)
 	mgr.registry = reg
 	return
 }
 
-func (mgr *Manager) initConsulResolver(conf *ConsulConfig) (err error){
+func (mgr *Manager) initConsulResolver(conf *ConsulConfig) (err error) {
 	consulConfig := consulapi.DefaultConfig()
 	consulConfig.Address = conf.ServerAddr
 	consulClient, err := consulapi.NewClient(consulConfig)

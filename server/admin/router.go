@@ -4,23 +4,23 @@ import (
 	"context"
 	"fmt"
 	"github.com/cloudwego/hertz/pkg/app"
+	"regexp"
+	"strconv"
 	"github.com/xhigher/hzgo/consts"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/resp"
-	"regexp"
-	"strconv"
 )
 
 type Router struct {
 	Method  consts.HttpMethod
 	Version int
 	Path    string
-	NoAuth bool
-	Roles []string
+	NoAuth  bool
+	Roles   []string
 	Handler app.HandlerFunc
 }
 
-func(r Router) PermissionFunc(m Module) app.HandlerFunc {
+func (r Router) PermissionFunc(m Module) app.HandlerFunc {
 	return func(ctx context.Context, c *app.RequestContext) {
 		resp := resp.Responder{Ctx: c}
 		typ := CRUDRead
@@ -43,7 +43,7 @@ func(r Router) PermissionFunc(m Module) app.HandlerFunc {
 						resp.ReplyErrorPermission()
 						return
 					}
-				}else{
+				} else {
 					if !p.write {
 						logger.Warnf("permission error: %v, %v, %v, %v", role, m.Name(), typ, p.write)
 						resp.ReplyErrorPermission()
@@ -63,7 +63,7 @@ func(r Router) PermissionFunc(m Module) app.HandlerFunc {
 
 }
 
-func(r *Router) mergeRoles(roles []string) {
+func (r *Router) mergeRoles(roles []string) {
 	if len(r.Roles) == 0 {
 		r.Roles = roles
 		return
@@ -74,14 +74,14 @@ func(r *Router) mergeRoles(roles []string) {
 		rm[tr] = 1
 	}
 	for _, tr := range roles {
-		if _,ok := rm[tr]; !ok {
+		if _, ok := rm[tr]; !ok {
 			roles2 = append(roles2, tr)
 		}
 	}
 	r.Roles = roles2
 }
 
-func(r Router) containRole(role string) bool {
+func (r Router) containRole(role string) bool {
 	for _, tr := range r.Roles {
 		if tr == role {
 			return true
@@ -94,8 +94,7 @@ var (
 	pathRegex = regexp.MustCompile(`^/(\w+)\/v(\d+)\/(\w+)$`)
 )
 
-
-func(r Router) FullPath(module string) string {
+func (r Router) FullPath(module string) string {
 	return fmt.Sprintf("/%s/v%d/%s", module, r.Version, r.Path)
 }
 

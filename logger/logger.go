@@ -2,14 +2,14 @@ package logger
 
 import (
 	"fmt"
-	"github.com/xhigher/hzgo/config"
-	"github.com/xhigher/hzgo/env"
 	"go.uber.org/zap"
 	"go.uber.org/zap/buffer"
 	"go.uber.org/zap/zapcore"
 	"os"
 	"strings"
 	"time"
+	"github.com/xhigher/hzgo/config"
+	"github.com/xhigher/hzgo/env"
 )
 
 var (

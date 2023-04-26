@@ -4,30 +4,30 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"testing"
 	"github.com/xhigher/hzgo/defines"
 	"github.com/xhigher/hzgo/utils"
-	"testing"
 )
 
 func TestSign(t *testing.T) {
 	baseParams := &defines.BaseParams{
-		Ap: "com.xhigher.hzgo",
-		Av: "1.2.3",
-		Dt: 1,
-		Did: "12131313131313",
-		Bd: "HUAWEI",
-		Md: "mate 40",
-		Os: "11.11",
-		Nt: 1,
-		Ch: "weixin",
-		Ip: "",
-		Loc: "",
+		Ap:   "com.xhigher.hzgo",
+		Av:   "1.2.3",
+		Dt:   1,
+		Did:  "12131313131313",
+		Bd:   "HUAWEI",
+		Md:   "mate 40",
+		Os:   "11.11",
+		Nt:   1,
+		Ch:   "weixin",
+		Ip:   "",
+		Loc:  "",
 		Imei: "",
 		Oaid: "",
 		Idfa: "",
-		Ds: "",
+		Ds:   "",
 		Sign: "",
-		Ts: utils.NowTime(),
+		Ts:   utils.NowTime(),
 	}
 
 	secret := "ysntsFNlD4nwuolcc8evZtTPsToizNtA"
@@ -55,7 +55,7 @@ func TestSign(t *testing.T) {
 
 	var params2 *defines.BaseParams
 	err = json.Unmarshal(bytes, &params2)
-	if err != nil{
+	if err != nil {
 		fmt.Println("error", err)
 		return
 	}

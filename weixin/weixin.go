@@ -3,9 +3,9 @@ package weixin
 import (
 	"errors"
 	"fmt"
+	"time"
 	"github.com/xhigher/hzgo/httpcli"
 	"github.com/xhigher/hzgo/logger"
-	"time"
 )
 
 const (
@@ -14,7 +14,7 @@ const (
 	//网页授权
 	//https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/Wechat_webpage_authorization.html
 	oauth2AccessTokenUrl = baseUrl + "/sns/oauth2/access_token"
-	oauth2UserInfoUrl = baseUrl + "/sns/userinfo"
+	oauth2UserInfoUrl    = baseUrl + "/sns/userinfo"
 
 	//小程序登录
 	//https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/user-login/code2Session.html
@@ -23,34 +23,31 @@ const (
 	//公众平台的 API 调用所需的access_token
 	//https://developers.weixin.qq.com/doc/offiaccount/Basic_Information/Get_access_token.html
 	serverAccessTokenUrl = baseUrl + "/cgi-bin/token"
-	serverUserInfoUrl = baseUrl + "/cgi-bin/user/info"
+	serverUserInfoUrl    = baseUrl + "/cgi-bin/user/info"
 
 	//jsapi_ticket是公众号用于调用微信 JS 接口的临时票据
 	//https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html
 	ticketUrl = baseUrl + "/cgi-bin/ticket/getticket"
-
 )
 
 type AppConf struct {
-	Appid string `json:"appid"`
+	Appid  string `json:"appid"`
 	Secret string `json:"secret"`
 }
 
-
 type Configs struct {
 	MiniApp *AppConf `json:"mini_app"`
-	MpApp *AppConf `json:"mp_app"`
+	MpApp   *AppConf `json:"mp_app"`
 }
 
 type Code2SessionResp struct {
-	SessionKey	string `json:"session_key"` //会话密钥
-	Unionid	string   `json:"unionid"` //用户在开放平台的唯一标识符，若当前小程序已绑定到微信开放平台帐号下会返回，详见 UnionID 机制说明。
-	Openid	string    `json:"openid"` //用户唯一标识
+	SessionKey string `json:"session_key"` //会话密钥
+	Unionid    string `json:"unionid"`     //用户在开放平台的唯一标识符，若当前小程序已绑定到微信开放平台帐号下会返回，详见 UnionID 机制说明。
+	Openid     string `json:"openid"`      //用户唯一标识
 
-	Errcode	int32 `json:"errcode"` //错误码
-	Errmsg	string `json:"errmsg"` //错误信息
+	Errcode int32  `json:"errcode"` //错误码
+	Errmsg  string `json:"errmsg"`  //错误信息
 }
-
 
 type OAuth2AccessTokenResp struct {
 	AccessToken    string `json:"access_token"`
@@ -61,22 +58,22 @@ type OAuth2AccessTokenResp struct {
 	IsSnapshotuser int    `json:"is_snapshotuser"`
 	Unionid        string `json:"unionid"`
 
-	Errcode int32    `json:"errcode"`
+	Errcode int32  `json:"errcode"`
 	Errmsg  string `json:"errmsg"`
 }
 
 type OAuth2UserInfoResp struct {
-	Openid     string      `json:"openid"`
-	Nickname   string `json:"nickname"`
-	Sex        int         `json:"sex"`
-	Province   string      `json:"province"`
-	City       string      `json:"city"`
-	Country    string      `json:"country"`
-	Headimgurl string      `json:"headimgurl"`
-	Unionid    string      `json:"unionid"`
-	Privilege []string `json:"privilege"`
+	Openid     string   `json:"openid"`
+	Nickname   string   `json:"nickname"`
+	Sex        int      `json:"sex"`
+	Province   string   `json:"province"`
+	City       string   `json:"city"`
+	Country    string   `json:"country"`
+	Headimgurl string   `json:"headimgurl"`
+	Unionid    string   `json:"unionid"`
+	Privilege  []string `json:"privilege"`
 
-	Errcode int32    `json:"errcode"`
+	Errcode int32  `json:"errcode"`
 	Errmsg  string `json:"errmsg"`
 }
 
@@ -84,7 +81,7 @@ type ServerAccessTokenResp struct {
 	AccessToken string `json:"access_token"`
 	ExpiresIn   int    `json:"expires_in"`
 
-	Errcode int32    `json:"errcode"`
+	Errcode int32  `json:"errcode"`
 	Errmsg  string `json:"errmsg"`
 }
 
@@ -92,8 +89,8 @@ type TicketResp struct {
 	Ticket    string `json:"ticket"`
 	ExpiresIn int    `json:"expires_in"`
 
-	Errcode   int    `json:"errcode"`
-	Errmsg    string `json:"errmsg"`
+	Errcode int    `json:"errcode"`
+	Errmsg  string `json:"errmsg"`
 }
 
 type ServerUserInfoResp struct {
@@ -109,26 +106,25 @@ type ServerUserInfoResp struct {
 	QrScene        int    `json:"qr_scene"`
 	QrSceneStr     string `json:"qr_scene_str"`
 
-	Errcode   int    `json:"errcode"`
-	Errmsg    string `json:"errmsg"`
+	Errcode int    `json:"errcode"`
+	Errmsg  string `json:"errmsg"`
 }
 
 type WeixinManager struct {
-	cli *httpcli.HttpCli
+	cli  *httpcli.HttpCli
 	conf *Configs
-
 }
 
 var mgr *WeixinManager
 
-func Init(conf *Configs){
+func Init(conf *Configs) {
 	mgr = &WeixinManager{
-		cli: httpcli.New(5*time.Second),
+		cli:  httpcli.New(5 * time.Second),
 		conf: conf,
 	}
 }
 
-func Code2Session(code string) (err error){
+func Code2Session(code string) (err error) {
 	if mgr == nil {
 		logger.Errorf("error: not init")
 		return
@@ -139,10 +135,10 @@ func Code2Session(code string) (err error){
 	}
 
 	data := map[string]string{
-		"appid":mgr.conf.MiniApp.Appid,
-		"secret":mgr.conf.MiniApp.Secret,
-		"grant_type":"authorization_code",
-		"js_code":code,
+		"appid":      mgr.conf.MiniApp.Appid,
+		"secret":     mgr.conf.MiniApp.Secret,
+		"grant_type": "authorization_code",
+		"js_code":    code,
 	}
 
 	resp := &Code2SessionResp{}
@@ -154,7 +150,7 @@ func Code2Session(code string) (err error){
 	return
 }
 
-func GetOauth2AccessToken(typ int, code string)(err error){
+func GetOauth2AccessToken(typ int, code string) (err error) {
 	if mgr == nil {
 		logger.Errorf("error: not init")
 		return
@@ -165,10 +161,10 @@ func GetOauth2AccessToken(typ int, code string)(err error){
 	}
 
 	data := map[string]string{
-		"appid":mgr.conf.MpApp.Appid,
-		"secret":mgr.conf.MpApp.Secret,
-		"grant_type":"authorization_code",
-		"code":code,
+		"appid":      mgr.conf.MpApp.Appid,
+		"secret":     mgr.conf.MpApp.Secret,
+		"grant_type": "authorization_code",
+		"code":       code,
 	}
 
 	resp := &OAuth2AccessTokenResp{}
@@ -184,7 +180,7 @@ func GetOauth2AccessToken(typ int, code string)(err error){
 	return
 }
 
-func GetOauth2UserInfo(token, openid string)(err error){
+func GetOauth2UserInfo(token, openid string) (err error) {
 	if mgr == nil {
 		logger.Errorf("error: not init")
 		return
@@ -195,9 +191,9 @@ func GetOauth2UserInfo(token, openid string)(err error){
 	}
 
 	data := map[string]string{
-		"access_token":token,
-		"openid":openid,
-		"lang":"zh_CN",
+		"access_token": token,
+		"openid":       openid,
+		"lang":         "zh_CN",
 	}
 
 	resp := &OAuth2UserInfoResp{}
@@ -213,7 +209,7 @@ func GetOauth2UserInfo(token, openid string)(err error){
 	return
 }
 
-func GetTicket(token, typ string)(ticket string, err error){
+func GetTicket(token, typ string) (ticket string, err error) {
 	if mgr == nil {
 		logger.Errorf("error: not init")
 		return
@@ -224,8 +220,8 @@ func GetTicket(token, typ string)(ticket string, err error){
 	}
 
 	data := map[string]string{
-		"access_token":token,
-		"type":typ,
+		"access_token": token,
+		"type":         typ,
 	}
 
 	resp := &TicketResp{}
@@ -242,7 +238,7 @@ func GetTicket(token, typ string)(ticket string, err error){
 	return
 }
 
-func GetServerAccessToken(token, openid string)(err error){
+func GetServerAccessToken(token, openid string) (err error) {
 	if mgr == nil {
 		logger.Errorf("error: not init")
 		return
@@ -253,9 +249,9 @@ func GetServerAccessToken(token, openid string)(err error){
 	}
 
 	data := map[string]string{
-		"appid":mgr.conf.MpApp.Appid,
-		"secret":mgr.conf.MpApp.Secret,
-		"grant_type":"client_credential",
+		"appid":      mgr.conf.MpApp.Appid,
+		"secret":     mgr.conf.MpApp.Secret,
+		"grant_type": "client_credential",
 	}
 
 	resp := &ServerAccessTokenResp{}
@@ -271,7 +267,7 @@ func GetServerAccessToken(token, openid string)(err error){
 	return
 }
 
-func GetServerUserInfo(token, openid string)(err error){
+func GetServerUserInfo(token, openid string) (err error) {
 	if mgr == nil {
 		logger.Errorf("error: not init")
 		return
@@ -282,9 +278,9 @@ func GetServerUserInfo(token, openid string)(err error){
 	}
 
 	data := map[string]string{
-		"access_token":token,
-		"openid":openid,
-		"lang":"zh_CN",
+		"access_token": token,
+		"openid":       openid,
+		"lang":         "zh_CN",
 	}
 
 	resp := &ServerUserInfoResp{}
@@ -299,5 +295,3 @@ func GetServerUserInfo(token, openid string)(err error){
 	}
 	return
 }
-
-
