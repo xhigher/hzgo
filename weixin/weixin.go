@@ -3,9 +3,9 @@ package weixin
 import (
 	"errors"
 	"fmt"
-	"time"
 	"github.com/xhigher/hzgo/httpcli"
 	"github.com/xhigher/hzgo/logger"
+	"time"
 )
 
 const (
@@ -124,7 +124,7 @@ func Init(conf *Configs) {
 	}
 }
 
-func Code2Session(code string) (err error) {
+func Code2Session(code string) (resp *Code2SessionResp, err error) {
 	if mgr == nil {
 		logger.Errorf("error: not init")
 		return
@@ -141,8 +141,7 @@ func Code2Session(code string) (err error) {
 		"js_code":    code,
 	}
 
-	resp := &Code2SessionResp{}
-	err = mgr.cli.GetJSON2(code2SessionUrl, data, resp)
+	err = mgr.cli.GetJSON2(code2SessionUrl, data, &resp)
 	if err != nil {
 		logger.Errorf("get data: %v, error: %v", data, err)
 		return
@@ -150,7 +149,7 @@ func Code2Session(code string) (err error) {
 	return
 }
 
-func GetOauth2AccessToken(typ int, code string) (err error) {
+func GetOauth2AccessToken(typ int, code string) (resp *OAuth2AccessTokenResp, err error) {
 	if mgr == nil {
 		logger.Errorf("error: not init")
 		return
@@ -167,8 +166,7 @@ func GetOauth2AccessToken(typ int, code string) (err error) {
 		"code":       code,
 	}
 
-	resp := &OAuth2AccessTokenResp{}
-	err = mgr.cli.GetJSON2(oauth2AccessTokenUrl, data, resp)
+	err = mgr.cli.GetJSON2(oauth2AccessTokenUrl, data, &resp)
 	if err != nil {
 		logger.Errorf("get data: %v, error: %v", data, err)
 		return
@@ -180,7 +178,7 @@ func GetOauth2AccessToken(typ int, code string) (err error) {
 	return
 }
 
-func GetOauth2UserInfo(token, openid string) (err error) {
+func GetOauth2UserInfo(token, openid string) (resp *OAuth2UserInfoResp, err error) {
 	if mgr == nil {
 		logger.Errorf("error: not init")
 		return
@@ -196,8 +194,7 @@ func GetOauth2UserInfo(token, openid string) (err error) {
 		"lang":         "zh_CN",
 	}
 
-	resp := &OAuth2UserInfoResp{}
-	err = mgr.cli.GetJSON2(oauth2UserInfoUrl, data, resp)
+	err = mgr.cli.GetJSON2(oauth2UserInfoUrl, data, &resp)
 	if err != nil {
 		logger.Errorf("get data: %v, error: %v", data, err)
 		return
@@ -238,7 +235,7 @@ func GetTicket(token, typ string) (ticket string, err error) {
 	return
 }
 
-func GetServerAccessToken(token, openid string) (err error) {
+func GetServerAccessToken() (token string, err error) {
 	if mgr == nil {
 		logger.Errorf("error: not init")
 		return
@@ -264,10 +261,11 @@ func GetServerAccessToken(token, openid string) (err error) {
 		err = errors.New(fmt.Sprintf("%d:%s", resp.Errcode, resp.Errmsg))
 		return
 	}
+	token = resp.AccessToken
 	return
 }
 
-func GetServerUserInfo(token, openid string) (err error) {
+func GetServerUserInfo(token, openid string) (resp *ServerUserInfoResp, err error) {
 	if mgr == nil {
 		logger.Errorf("error: not init")
 		return
@@ -283,8 +281,7 @@ func GetServerUserInfo(token, openid string) (err error) {
 		"lang":         "zh_CN",
 	}
 
-	resp := &ServerUserInfoResp{}
-	err = mgr.cli.GetJSON2(serverUserInfoUrl, data, resp)
+	err = mgr.cli.GetJSON2(serverUserInfoUrl, data, &resp)
 	if err != nil {
 		logger.Errorf("get data: %v, error: %v", data, err)
 		return
