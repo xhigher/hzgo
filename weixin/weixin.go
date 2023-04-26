@@ -114,15 +114,18 @@ type ServerUserInfoResp struct {
 }
 
 type UserInfo struct {
-	Openid     string   `json:"openid"`
-	Nickname   string   `json:"nickname"`
-	Sex        int      `json:"sex"`
-	Province   string   `json:"province"`
-	City       string   `json:"city"`
-	Country    string   `json:"country"`
-	Headimgurl string   `json:"headimgurl"`
-	Unionid    string   `json:"unionid"`
-	Privilege  []string `json:"privilege"`
+	OpenId    string      `json:"openId"`
+	NickName  string      `json:"nickName"`
+	Gender    int `json:"gender"`
+	City      string      `json:"city"`
+	Province  string      `json:"province"`
+	Country   string      `json:"country"`
+	AvatarUrl string      `json:"avatarUrl"`
+	UnionId   string      `json:"unionId"`
+	Watermark struct {
+		Appid     string      `json:"appid"`
+		Timestamp interface{} `json:"timestamp"`
+	} `json:"watermark"`
 }
 
 type WeixinManager struct {
