@@ -1,10 +1,13 @@
 package weixin
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/xhigher/hzgo/httpcli"
 	"github.com/xhigher/hzgo/logger"
+	"github.com/xhigher/hzgo/utils"
 	"time"
 )
 
@@ -110,6 +113,18 @@ type ServerUserInfoResp struct {
 	Errmsg  string `json:"errmsg"`
 }
 
+type UserInfo struct {
+	Openid     string   `json:"openid"`
+	Nickname   string   `json:"nickname"`
+	Sex        int      `json:"sex"`
+	Province   string   `json:"province"`
+	City       string   `json:"city"`
+	Country    string   `json:"country"`
+	Headimgurl string   `json:"headimgurl"`
+	Unionid    string   `json:"unionid"`
+	Privilege  []string `json:"privilege"`
+}
+
 type WeixinManager struct {
 	cli  *httpcli.HttpCli
 	conf *Configs
@@ -144,6 +159,37 @@ func Code2Session(code string) (resp *Code2SessionResp, err error) {
 	err = mgr.cli.GetJSON2(code2SessionUrl, data, &resp)
 	if err != nil {
 		logger.Errorf("get data: %v, error: %v", data, err)
+		return
+	}
+	return
+}
+
+func DecryptMiniAppUserData(sessionKey, encryptedData, iv string) (data *UserInfo, err error) {
+	decodeBytes, err := base64.StdEncoding.DecodeString(encryptedData)
+	if err != nil {
+		logger.Errorf("error: %v", err)
+		return
+	}
+	sessionKeyBytes, errKey := base64.StdEncoding.DecodeString(sessionKey)
+	if errKey != nil {
+		logger.Errorf("error: %v", err)
+		return
+	}
+	ivBytes, errIv := base64.StdEncoding.DecodeString(iv)
+	if errIv != nil {
+		logger.Errorf("error: %v", err)
+		return
+	}
+	dataBytes, err := utils.AesDecrypt(decodeBytes, sessionKeyBytes, ivBytes)
+	logger.Infof("dataBytes: %v", dataBytes)
+	if err != nil {
+		logger.Errorf("error: %v", err)
+		return
+	}
+
+	err = json.Unmarshal(dataBytes, &data)
+	if err != nil {
+		logger.Errorf("error: %v", err)
 		return
 	}
 	return
