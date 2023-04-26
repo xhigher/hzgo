@@ -41,6 +41,7 @@ type AppConf struct {
 type Configs struct {
 	MiniApp *AppConf `json:"mini_app"`
 	MpApp   *AppConf `json:"mp_app"`
+	Timeout time.Duration `json:"timeout"`
 }
 
 type Code2SessionResp struct {
@@ -129,7 +130,6 @@ type UserInfo struct {
 }
 
 type WeixinManager struct {
-	cli  *httpcli.HttpCli
 	conf *Configs
 }
 
@@ -137,7 +137,6 @@ var mgr *WeixinManager
 
 func Init(conf *Configs) {
 	mgr = &WeixinManager{
-		cli:  httpcli.New(5 * time.Second),
 		conf: conf,
 	}
 }
@@ -159,7 +158,7 @@ func Code2Session(code string) (resp *Code2SessionResp, err error) {
 		"js_code":    code,
 	}
 
-	err = mgr.cli.GetJSON2(code2SessionUrl, data, &resp)
+	err = httpcli.GetJSONWithTimeout(code2SessionUrl, data, mgr.conf.Timeout, &resp)
 	if err != nil {
 		logger.Errorf("get data: %v, error: %v", data, err)
 		return
@@ -215,7 +214,7 @@ func GetOauth2AccessToken(typ int, code string) (resp *OAuth2AccessTokenResp, er
 		"code":       code,
 	}
 
-	err = mgr.cli.GetJSON2(oauth2AccessTokenUrl, data, &resp)
+	err = httpcli.GetJSONWithTimeout(oauth2AccessTokenUrl, data, mgr.conf.Timeout, &resp)
 	if err != nil {
 		logger.Errorf("get data: %v, error: %v", data, err)
 		return
@@ -243,7 +242,7 @@ func GetOauth2UserInfo(token, openid string) (resp *OAuth2UserInfoResp, err erro
 		"lang":         "zh_CN",
 	}
 
-	err = mgr.cli.GetJSON2(oauth2UserInfoUrl, data, &resp)
+	err = httpcli.GetJSONWithTimeout(oauth2UserInfoUrl, data, mgr.conf.Timeout, &resp)
 	if err != nil {
 		logger.Errorf("get data: %v, error: %v", data, err)
 		return
@@ -271,7 +270,7 @@ func GetTicket(token, typ string) (ticket string, err error) {
 	}
 
 	resp := &TicketResp{}
-	err = mgr.cli.GetJSON2(ticketUrl, data, resp)
+	err = httpcli.GetJSONWithTimeout(ticketUrl, data, mgr.conf.Timeout, resp)
 	if err != nil {
 		logger.Errorf("get data: %v, error: %v", data, err)
 		return
@@ -301,7 +300,7 @@ func GetServerAccessToken() (token string, err error) {
 	}
 
 	resp := &ServerAccessTokenResp{}
-	err = mgr.cli.GetJSON2(serverAccessTokenUrl, data, resp)
+	err = httpcli.GetJSONWithTimeout(serverAccessTokenUrl, data, mgr.conf.Timeout, resp)
 	if err != nil {
 		logger.Errorf("get data: %v, error: %v", data, err)
 		return
@@ -330,7 +329,7 @@ func GetServerUserInfo(token, openid string) (resp *ServerUserInfoResp, err erro
 		"lang":         "zh_CN",
 	}
 
-	err = mgr.cli.GetJSON2(serverUserInfoUrl, data, &resp)
+	err = httpcli.GetJSONWithTimeout(serverUserInfoUrl, data, mgr.conf.Timeout, &resp)
 	if err != nil {
 		logger.Errorf("get data: %v, error: %v", data, err)
 		return
