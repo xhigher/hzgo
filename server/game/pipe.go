@@ -3,10 +3,10 @@ package game
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/xhigher/hzgo/logger"
 	"log"
 	"sync"
 	"time"
-	"github.com/xhigher/hzgo/logger"
 
 	"github.com/hertz-contrib/websocket"
 )
@@ -81,7 +81,6 @@ func (p *Pipe) writePump() {
 		case mbs, ok := <-p.send:
 			p.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
-				// The hub closed the channel.
 				p.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
@@ -90,7 +89,6 @@ func (p *Pipe) writePump() {
 			if err != nil {
 				return
 			}
-			logger.Infof("writePump: %v", string(mbs))
 
 			w.Write(mbs)
 
