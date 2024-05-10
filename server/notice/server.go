@@ -7,6 +7,7 @@ import (
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
+	"github.com/hertz-contrib/cors"
 	"github.com/hertz-contrib/sse"
 	"net/http"
 	"time"
@@ -59,6 +60,7 @@ func NewServer(conf *config.ServerConfig) *HzgoServer {
 	go svr.relay()
 
 	ohz.Use(svr.CreateReceiveChannel())
+	ohz.Use(svr.CorsHandle())
 
 	ohz.GET("/sse", svr.ServerSentEvent)
 
@@ -69,16 +71,16 @@ func NewServer(conf *config.ServerConfig) *HzgoServer {
 	return svr
 }
 
-func (srv *HzgoServer) ServerSentEvent(ctx context.Context, c *app.RequestContext) {
+func (s *HzgoServer) ServerSentEvent(ctx context.Context, c *app.RequestContext) {
 	// in production, you would get user's identity in other ways e.g. Authorization
 	username := c.Query("username")
 
 	stream := sse.NewStream(c)
 	go func() {
-		srv.Heartbeat(stream)
+		s.Heartbeat(stream)
 	}()
 	// get messages from user's receive channel
-	for msg := range srv.Receive[username] {
+	for msg := range s.Receive[username] {
 
 		payload, err := json.Marshal(msg)
 		if err != nil {
@@ -98,20 +100,20 @@ func (srv *HzgoServer) ServerSentEvent(ctx context.Context, c *app.RequestContex
 	}
 }
 
-func (srv *HzgoServer) Heartbeat(s *sse.Stream) {
+func (s *HzgoServer) Heartbeat(stream *sse.Stream) {
 	for t := range time.NewTicker(3 * time.Second).C {
 		event := &sse.Event{
 			Event: "timestamp",
 			Data:  []byte(t.Format(time.RFC3339)),
 		}
-		err := s.Publish(event)
+		err := stream.Publish(event)
 		if err != nil {
 			return
 		}
 	}
 }
 
-func (srv *HzgoServer) Direct(ctx context.Context, c *app.RequestContext) {
+func (s *HzgoServer) Direct(ctx context.Context, c *app.RequestContext) {
 	// in production, you would get user's identity in other ways e.g. Authorization
 	from := c.Query("from")
 	to := c.Query("to")
@@ -125,13 +127,13 @@ func (srv *HzgoServer) Direct(ctx context.Context, c *app.RequestContext) {
 		Timestamp: time.Now(),
 	}
 	// deliver message to DirectMessageC.
-	srv.DirectMessageC <- msg
+	s.DirectMessageC <- msg
 
 	hlog.CtxInfof(ctx, "message sent: %+v", msg)
 	c.AbortWithStatus(http.StatusOK)
 }
 
-func (srv *HzgoServer) Broadcast(ctx context.Context, c *app.RequestContext) {
+func (s *HzgoServer) Broadcast(ctx context.Context, c *app.RequestContext) {
 	// in production, you would get user's identity in other ways e.g. Authorization
 	from := c.Query("from")
 	message := c.Query("message")
@@ -143,7 +145,7 @@ func (srv *HzgoServer) Broadcast(ctx context.Context, c *app.RequestContext) {
 		Timestamp: time.Now(),
 	}
 	// deliver message to BroadcastMessageC.
-	srv.BroadcastMessageC <- msg
+	s.BroadcastMessageC <- msg
 
 	hlog.CtxInfof(ctx, "message sent: %+v", msg)
 	c.AbortWithStatus(http.StatusOK)
@@ -151,30 +153,58 @@ func (srv *HzgoServer) Broadcast(ctx context.Context, c *app.RequestContext) {
 
 // relay handles messages sent to BroadcastMessageC and DirectMessageC and
 // relay messages to receive channels depends on message type.
-func (srv *HzgoServer) relay() {
+func (s *HzgoServer) relay() {
 	for {
 		select {
 		// broadcast message to all users
-		case msg := <-srv.BroadcastMessageC:
-			for _, r := range srv.Receive {
+		case msg := <-s.BroadcastMessageC:
+			for _, r := range s.Receive {
 				r <- msg
 			}
 
 		// deliver message to user specified in To
-		case msg := <-srv.DirectMessageC:
-			srv.Receive[msg.To] <- msg
+		case msg := <-s.DirectMessageC:
+			s.Receive[msg.To] <- msg
 		}
 	}
 }
 
+func (s *HzgoServer) CorsHandle() app.HandlerFunc {
+	if s.Conf.Cors == nil {
+		s.Conf.Cors = &config.CorsConfig{
+			AllowOrigins: []string{"*"},
+			AllowMethods: []string{"GET"},
+			AllowHeaders: []string{"Origin", "Authorization", "Content-Type"},
+		}
+	}
+	return cors.New(cors.Config{
+		//准许跨域请求网站,多个使用,分开,限制使用*
+		AllowOrigins: s.Conf.Cors.AllowOrigins,
+		//准许使用的请求方式
+		AllowMethods: s.Conf.Cors.AllowMethods,
+		//准许使用的请求表头
+		AllowHeaders: s.Conf.Cors.AllowHeaders,
+		//显示的请求表头
+		ExposeHeaders: []string{"Content-Type"},
+		//凭证共享,确定共享
+		AllowCredentials: true,
+		//容许跨域的原点网站,可以直接return true就万事大吉了
+		//AllowOriginFunc: func(origin string) bool {
+		//	return true
+		//},
+		//超时时间设定
+		MaxAge: 24 * time.Hour,
+	})
+}
+
 // CreateReceiveChannel creates a buffered receive channel for each user.
-func (srv *HzgoServer) CreateReceiveChannel() app.HandlerFunc {
+func (s *HzgoServer) CreateReceiveChannel() app.HandlerFunc {
 	return func(ctx context.Context, c *app.RequestContext) {
 		username := c.Query("username")
 		// if user doesn't have a channel yet, create a new one.
-		if _, found := srv.Receive[username]; !found {
+		if _, found := s.Receive[username]; !found {
 			receive := make(chan Message, 1000)
-			srv.Receive[username] = receive
+			s.Receive[username] = receive
 		}
 		c.Next(ctx)
 	}

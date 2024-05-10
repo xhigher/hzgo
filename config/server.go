@@ -16,6 +16,7 @@ type ServerConfig struct {
 	OuterAddr  string         `mapstructure:"outer-addr" json:"outer-addr" yaml:"outer-addr"`
 	InnerAddr  string         `mapstructure:"inner-addr" json:"inner-addr" yaml:"inner-addr"`
 	MaxReqSize int            `mapstructure:"max-req-size" json:"max-req-size" yaml:"max-req-size"`
+	Cors       *CorsConfig    `mapstructure:"cors" json:"cors" yaml:"cors"`
 	Logger     *LoggerConfig  `mapstructure:"logger" json:"logger" yaml:"logger"`
 	JWT        *JWTConfig     `mapstructure:"jwt" json:"jwt" yaml:"jwt"`
 	Sec        *SecConfig     `mapstructure:"sec" json:"sec" yaml:"sec"`
