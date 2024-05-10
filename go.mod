@@ -13,8 +13,9 @@ require (
 	github.com/alibabacloud-go/tea-utils v1.4.5
 	github.com/alibabacloud-go/tea-utils/v2 v2.0.1
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.6+incompatible
-	github.com/cloudwego/hertz v0.4.2
+	github.com/cloudwego/hertz v0.6.1
 	github.com/ddliu/go-httpclient v0.7.1
+	github.com/gin-contrib/sse v0.1.0
 	github.com/gin-gonic/gin v1.8.2
 	github.com/go-pay/gopay v1.5.88
 	github.com/go-redis/redis/v8 v8.11.5
@@ -23,6 +24,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/consul/api v1.15.3
 	github.com/hertz-contrib/registry/consul v0.0.0-20230207051619-7ff71fed629c
+	github.com/hertz-contrib/sse v0.0.5
 	github.com/hertz-contrib/websocket v0.0.1
 	github.com/spf13/viper v1.14.0
 	go.uber.org/zap v1.23.0
@@ -46,15 +48,14 @@ require (
 	github.com/armon/go-metrics v0.4.0 // indirect
 	github.com/bytedance/go-tagexpr/v2 v2.9.2 // indirect
 	github.com/bytedance/gopkg v0.0.0-20220413063733-65bf48ffb3a7 // indirect
-	github.com/bytedance/sonic v1.5.0 // indirect
+	github.com/bytedance/sonic v1.8.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
-	github.com/chenzhuoyu/base64x v0.0.0-20211019084208-fb5309c8db06 // indirect
+	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/clbanning/mxj/v2 v2.5.6 // indirect
 	github.com/cloudwego/netpoll v0.3.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
-	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-playground/validator/v10 v10.11.1 // indirect
@@ -102,7 +103,7 @@ require (
 	golang.org/x/crypto v0.4.0 // indirect
 	golang.org/x/net v0.4.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.3.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.5.0 // indirect
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect

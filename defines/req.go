@@ -11,7 +11,7 @@ type AppLoc struct {
 
 type BaseParams struct {
 	//应用包名
-	Ap string `json:"app,omitempty"`
+	Ap string `json:"ap,omitempty"`
 	//应用版本号
 	Av string `json:"av,omitempty"`
 	//dev_type 操作系统 1=android, 2=iOS, 3=windows
@@ -61,21 +61,21 @@ type LoginReq struct {
 }
 
 type TokenUpdateReq struct {
-	Audience string `form:"audience" json:"audience" query:"audience"`
-	TokenId string `form:"token_id" json:"token_id" query:"token_id"`
-	ExpiredAt int64 `form:"expired_at" json:"expired_at" query:"expired_at"`
-	IssuedAt int64 `form:"issued_at" json:"issued_at" query:"issued_at"`
+	Audience  string `form:"audience" json:"audience" query:"audience"`
+	TokenId   string `form:"token_id" json:"token_id" query:"token_id"`
+	ExpiredAt int64  `form:"expired_at" json:"expired_at" query:"expired_at"`
+	IssuedAt  int64  `form:"issued_at" json:"issued_at" query:"issued_at"`
 }
 
 type TokenCheckReq struct {
-	Userid string `form:"userid" json:"userid" query:"userid"`
+	Userid  string `form:"userid" json:"userid" query:"userid"`
 	TokenId string `form:"token_id" json:"token_id" query:"token_id"`
 }
 
 type StatusPageReq struct {
 	Status int32 `form:"status" json:"status" query:"status"`
 	Offset int32 `form:"offset" json:"offset" query:"offset"`
-	Limit int32  `form:"limit" json:"limit" query:"limit"`
+	Limit  int32 `form:"limit" json:"limit" query:"limit"`
 }
 
 type ChangeStatusReq struct {
@@ -89,7 +89,7 @@ type BannerReq struct {
 
 type ConfigReq struct {
 	Sum string `json:"sum"`
-	Id string `json:"id"`
+	Id  string `json:"id"`
 }
 
 type CommonIdReq struct {
