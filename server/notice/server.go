@@ -165,10 +165,6 @@ func (srv *HzgoServer) CreateReceiveChannel() app.HandlerFunc {
 }
 
 func (s *HzgoServer) Start() {
-	if s.Auth == nil {
-		hlog.Fatalf("auth nil")
-		return
-	}
 
 	go func() {
 		s.InnerHz.Spin()
