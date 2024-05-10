@@ -21,7 +21,8 @@ import (
 
 type HzgoServer struct {
 	Conf              *config.ServerConfig
-	Hz                *server.Hertz
+	OuterHz           *server.Hertz
+	InnerHz           *server.Hertz
 	Auth              *middlewares.JWTAuth
 	Sign              *middlewares.SecSign
 	BroadcastMessageC chan Message
@@ -31,18 +32,23 @@ type HzgoServer struct {
 	Receive map[string]chan Message
 }
 
-func NewSSEServer(conf *config.ServerConfig) *HzgoServer {
+func NewServer(conf *config.ServerConfig) *HzgoServer {
 	logger.Init(conf.Logger)
 	mysql.Init(conf.Mysql)
 	fmt.Println("server config: ", utils.JSONString(conf))
 
-	hz := server.Default(server.WithHostPorts(conf.Addr),
+	ohz := server.Default(server.WithHostPorts(conf.OuterAddr),
+		server.WithExitWaitTime(consts.TimeSecond1),
+		server.WithMaxRequestBodySize(conf.MaxReqSize))
+
+	ihz := server.Default(server.WithHostPorts(conf.InnerAddr),
 		server.WithExitWaitTime(consts.TimeSecond1),
 		server.WithMaxRequestBodySize(conf.MaxReqSize))
 
 	svr := &HzgoServer{
 		Conf:              conf,
-		Hz:                hz,
+		OuterHz:           ohz,
+		InnerHz:           ihz,
 		Auth:              middlewares.NewJWTAuth(conf.JWT),
 		Sign:              middlewares.NewSecSign(conf.Sec),
 		BroadcastMessageC: make(chan Message),
@@ -52,11 +58,13 @@ func NewSSEServer(conf *config.ServerConfig) *HzgoServer {
 
 	go svr.relay()
 
-	hz.Use(svr.CreateReceiveChannel())
+	ohz.Use(svr.CreateReceiveChannel())
 
-	hz.GET("/sse", svr.ServerSentEvent)
-	hz.POST("/chat/broadcast", svr.Broadcast)
-	hz.POST("/chat/direct", svr.Direct)
+	ohz.GET("/sse", svr.ServerSentEvent)
+
+	ihz.POST("/chat/broadcast", svr.Broadcast)
+
+	ihz.POST("/chat/direct", svr.Direct)
 
 	return svr
 }
@@ -162,5 +170,6 @@ func (s *HzgoServer) Start() {
 		return
 	}
 
-	s.Hz.Spin()
+	s.OuterHz.Spin()
+	s.InnerHz.Spin()
 }
