@@ -170,6 +170,9 @@ func (s *HzgoServer) Start() {
 		return
 	}
 
+	go func() {
+		s.InnerHz.Spin()
+	}()
+
 	s.OuterHz.Spin()
-	s.InnerHz.Spin()
 }
