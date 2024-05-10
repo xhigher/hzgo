@@ -74,6 +74,9 @@ func (srv *HzgoServer) ServerSentEvent(ctx context.Context, c *app.RequestContex
 	username := c.Query("username")
 
 	stream := sse.NewStream(c)
+	go func() {
+		srv.Heartbeat(stream)
+	}()
 	// get messages from user's receive channel
 	for msg := range srv.Receive[username] {
 
@@ -89,6 +92,19 @@ func (srv *HzgoServer) ServerSentEvent(ctx context.Context, c *app.RequestContex
 		}
 		c.SetStatusCode(http.StatusOK)
 		err = stream.Publish(event)
+		if err != nil {
+			return
+		}
+	}
+}
+
+func (srv *HzgoServer) Heartbeat(s *sse.Stream) {
+	for t := range time.NewTicker(3 * time.Second).C {
+		event := &sse.Event{
+			Event: "timestamp",
+			Data:  []byte(t.Format(time.RFC3339)),
+		}
+		err := s.Publish(event)
 		if err != nil {
 			return
 		}
