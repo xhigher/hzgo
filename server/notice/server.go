@@ -46,11 +46,11 @@ func NewServer(conf *config.ServerConfig) *HzgoServer {
 		server.WithMaxRequestBodySize(conf.MaxReqSize))
 
 	svr := &HzgoServer{
-		Conf:              conf,
-		OuterHz:           ohz,
-		InnerHz:           ihz,
-		Auth:              middlewares.NewJWTAuth(conf.JWT),
-		Sign:              middlewares.NewSecSign(conf.Sec),
+		Conf:    conf,
+		OuterHz: ohz,
+		InnerHz: ihz,
+		//Auth:              middlewares.NewJWTAuth(conf.JWT),
+		//Sign:              middlewares.NewSecSign(conf.Sec),
 		BroadcastMessageC: make(chan Message),
 		DirectMessageC:    make(chan Message),
 		Receive:           make(map[string]chan Message),
