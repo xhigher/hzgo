@@ -8,6 +8,6 @@ type Message struct {
 	Type      string
 	From      string
 	To        string
-	Message   string
+	Data      []byte
 	Timestamp time.Time
 }

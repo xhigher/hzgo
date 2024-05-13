@@ -9,6 +9,7 @@ import (
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/hertz-contrib/cors"
 	"github.com/hertz-contrib/sse"
+	"github.com/xhigher/hzgo/httpcli"
 	"net/http"
 	"time"
 
@@ -20,67 +21,67 @@ import (
 	"github.com/xhigher/hzgo/utils"
 )
 
-type HzgoServer struct {
+type HzgoNodeServer struct {
 	Conf              *config.ServerConfig
-	OuterHz           *server.Hertz
-	InnerHz           *server.Hertz
+	Hz                *server.Hertz
 	Auth              *middlewares.JWTAuth
 	Sign              *middlewares.SecSign
 	BroadcastMessageC chan Message
 	// DirectMessageC direct messages are pushed to this channel
 	DirectMessageC chan Message
 	// Receive keeps a list of chan ChatMessage, one per user
-	Receive map[string]chan Message
+	Receive     map[string]chan Message
+	tokenHelper TokenHelper
+	Id          string
 }
 
-func NewServer(conf *config.ServerConfig) *HzgoServer {
+func NewNodeServer(conf *config.ServerConfig) *HzgoNodeServer {
 	logger.Init(conf.Logger)
 	mysql.Init(conf.Mysql)
 	fmt.Println("server config: ", utils.JSONString(conf))
 
-	ohz := server.Default(server.WithHostPorts(conf.OuterAddr),
+	hz := server.Default(server.WithHostPorts(conf.Addr),
 		server.WithExitWaitTime(consts.TimeSecond1),
 		server.WithMaxRequestBodySize(conf.MaxReqSize))
 
-	ihz := server.Default(server.WithHostPorts(conf.InnerAddr),
-		server.WithExitWaitTime(consts.TimeSecond1),
-		server.WithMaxRequestBodySize(conf.MaxReqSize))
-
-	svr := &HzgoServer{
-		Conf:    conf,
-		OuterHz: ohz,
-		InnerHz: ihz,
+	svr := &HzgoNodeServer{
+		Conf: conf,
+		Hz:   hz,
 		//Auth:              middlewares.NewJWTAuth(conf.JWT),
 		//Sign:              middlewares.NewSecSign(conf.Sec),
 		BroadcastMessageC: make(chan Message),
 		DirectMessageC:    make(chan Message),
 		Receive:           make(map[string]chan Message),
+		tokenHelper:       newTokenHelper(conf.JWT),
+		Id:                utils.TimeUUID(),
 	}
 
 	go svr.relay()
 
-	ohz.Use(svr.CreateReceiveChannel())
-	ohz.Use(svr.CorsHandle())
-
-	ohz.GET("/sse", svr.ServerSentEvent)
-
-	ihz.POST("/chat/broadcast", svr.Broadcast)
-
-	ihz.POST("/chat/direct", svr.Direct)
+	hz.Use(svr.CreateReceiveChannel())
+	hz.Use(svr.CorsHandle())
+	hz.GET("/sse", svr.ServerSentEvent)
 
 	return svr
 }
 
-func (s *HzgoServer) ServerSentEvent(ctx context.Context, c *app.RequestContext) {
+func (s *HzgoNodeServer) ServerSentEvent(ctx context.Context, c *app.RequestContext) {
 	// in production, you would get user's identity in other ways e.g. Authorization
-	username := c.Query("username")
+	uid, ok := ctx.Value("uid").(string)
+	if !ok {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
 
 	stream := sse.NewStream(c)
 	go func() {
 		s.Heartbeat(stream)
 	}()
+
+	s.register(uid)
+
 	// get messages from user's receive channel
-	for msg := range s.Receive[username] {
+	for msg := range s.Receive[uid] {
 
 		payload, err := json.Marshal(msg)
 		if err != nil {
@@ -100,10 +101,10 @@ func (s *HzgoServer) ServerSentEvent(ctx context.Context, c *app.RequestContext)
 	}
 }
 
-func (s *HzgoServer) Heartbeat(stream *sse.Stream) {
+func (s *HzgoNodeServer) Heartbeat(stream *sse.Stream) {
 	for t := range time.NewTicker(3 * time.Second).C {
 		event := &sse.Event{
-			Event: "timestamp",
+			Event: "heartbeat",
 			Data:  []byte(t.Format(time.RFC3339)),
 		}
 		err := stream.Publish(event)
@@ -113,47 +114,9 @@ func (s *HzgoServer) Heartbeat(stream *sse.Stream) {
 	}
 }
 
-func (s *HzgoServer) Direct(ctx context.Context, c *app.RequestContext) {
-	// in production, you would get user's identity in other ways e.g. Authorization
-	from := c.Query("from")
-	to := c.Query("to")
-	message := c.Query("message")
-
-	msg := Message{
-		From:      from,
-		To:        to,
-		Message:   message,
-		Type:      "direct",
-		Timestamp: time.Now(),
-	}
-	// deliver message to DirectMessageC.
-	s.DirectMessageC <- msg
-
-	hlog.CtxInfof(ctx, "message sent: %+v", msg)
-	c.AbortWithStatus(http.StatusOK)
-}
-
-func (s *HzgoServer) Broadcast(ctx context.Context, c *app.RequestContext) {
-	// in production, you would get user's identity in other ways e.g. Authorization
-	from := c.Query("from")
-	message := c.Query("message")
-
-	msg := Message{
-		From:      from,
-		Message:   message,
-		Type:      "broadcast",
-		Timestamp: time.Now(),
-	}
-	// deliver message to BroadcastMessageC.
-	s.BroadcastMessageC <- msg
-
-	hlog.CtxInfof(ctx, "message sent: %+v", msg)
-	c.AbortWithStatus(http.StatusOK)
-}
-
 // relay handles messages sent to BroadcastMessageC and DirectMessageC and
 // relay messages to receive channels depends on message type.
-func (s *HzgoServer) relay() {
+func (s *HzgoNodeServer) relay() {
 	for {
 		select {
 		// broadcast message to all users
@@ -169,7 +132,17 @@ func (s *HzgoServer) relay() {
 	}
 }
 
-func (s *HzgoServer) CorsHandle() app.HandlerFunc {
+func (s *HzgoNodeServer) register(uid string) (err error) {
+	params := RegisterReq{
+		Uid: uid,
+		Nid: s.Id,
+	}
+	url := fmt.Sprintf("http://%s/register", s.Conf.MasterAddr)
+	err = httpcli.PostJSON(url, params, nil)
+	return
+}
+
+func (s *HzgoNodeServer) CorsHandle() app.HandlerFunc {
 	if s.Conf.Cors == nil {
 		s.Conf.Cors = &config.CorsConfig{
 			AllowOrigins: []string{"*"},
@@ -198,23 +171,62 @@ func (s *HzgoServer) CorsHandle() app.HandlerFunc {
 }
 
 // CreateReceiveChannel creates a buffered receive channel for each user.
-func (s *HzgoServer) CreateReceiveChannel() app.HandlerFunc {
+func (s *HzgoNodeServer) CreateReceiveChannel() app.HandlerFunc {
 	return func(ctx context.Context, c *app.RequestContext) {
-		username := c.Query("username")
+		token := c.Query("token")
+		if len(token) < 30 {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		uid, did, err := s.tokenHelper.ParseTokenInfo(token)
+		if err != nil {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+
+		ctx = context.WithValue(ctx, "uid", uid)
+		ctx = context.WithValue(ctx, "did", did)
 		// if user doesn't have a channel yet, create a new one.
-		if _, found := s.Receive[username]; !found {
+		if _, found := s.Receive[uid]; !found {
 			receive := make(chan Message, 1000)
-			s.Receive[username] = receive
+			s.Receive[uid] = receive
 		}
 		c.Next(ctx)
 	}
 }
 
-func (s *HzgoServer) Start() {
+func (s *HzgoNodeServer) ConnectMaster() {
+	c := sse.NewClient(fmt.Sprintf("http://%s/master?nid=%s", s.Conf.MasterAddr, s.Id))
+
+	// touch off when connected to the server
+	c.SetOnConnectCallback(func(ctx context.Context, client *sse.Client) {
+		hlog.Infof("client1 connect to server %s success with %s method", c.GetURL(), c.GetMethod())
+	})
+
+	// touch off when the connection is shutdown
+	c.SetDisconnectCallback(func(ctx context.Context, client *sse.Client) {
+		hlog.Infof("client1 disconnect to server %s success with %s method", c.GetURL(), c.GetMethod())
+	})
+
+	c.SubscribeWithContext(context.Background(), func(e *sse.Event) {
+		if e.Data != nil {
+			msg := Message{}
+			json.Unmarshal(e.Data, msg)
+			if e.Event == "broadcast" {
+				s.BroadcastMessageC <- msg
+			} else if e.Event == "direct" {
+				s.DirectMessageC <- msg
+			}
+			return
+		}
+	})
+}
+
+func (s *HzgoNodeServer) Start() {
 
 	go func() {
-		s.InnerHz.Spin()
+		s.ConnectMaster()
 	}()
 
-	s.OuterHz.Spin()
+	s.Hz.Spin()
 }

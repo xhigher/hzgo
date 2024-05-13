@@ -13,8 +13,7 @@ type ServerConfig struct {
 	Env        string         `mapstructure:"env" json:"env" yaml:"env"`
 	Name       string         `mapstructure:"name" json:"name" yaml:"name"`
 	Addr       string         `mapstructure:"addr" json:"addr" yaml:"addr"`
-	OuterAddr  string         `mapstructure:"outer-addr" json:"outer-addr" yaml:"outer-addr"`
-	InnerAddr  string         `mapstructure:"inner-addr" json:"inner-addr" yaml:"inner-addr"`
+	MasterAddr string         `mapstructure:"master-addr" json:"master-addr" yaml:"master-addr"`
 	MaxReqSize int            `mapstructure:"max-req-size" json:"max-req-size" yaml:"max-req-size"`
 	Cors       *CorsConfig    `mapstructure:"cors" json:"cors" yaml:"cors"`
 	Logger     *LoggerConfig  `mapstructure:"logger" json:"logger" yaml:"logger"`

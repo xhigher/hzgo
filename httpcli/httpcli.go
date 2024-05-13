@@ -1,16 +1,31 @@
 package httpcli
 
 import (
+	"context"
 	"encoding/json"
-	"github.com/ddliu/go-httpclient"
-	"time"
+	"fmt"
+	"github.com/cloudwego/hertz/pkg/app/client"
+	"github.com/cloudwego/hertz/pkg/common/config"
+	"github.com/cloudwego/hertz/pkg/network/standard"
+	"github.com/cloudwego/hertz/pkg/protocol"
 	"github.com/xhigher/hzgo/logger"
+	"net/http"
+	"time"
 )
 
+var defaultClient *client.Client
+
 func init() {
-	httpclient.Defaults(httpclient.Map{
-		httpclient.OPT_USERAGENT: "hzgo http client",
-	})
+	defaultClient, _ = client.NewClient(
+		client.WithDialTimeout(1*time.Second),
+		client.WithMaxConnsPerHost(1024),
+		client.WithMaxIdleConnDuration(10*time.Second),
+		client.WithMaxConnDuration(10*time.Second),
+		client.WithMaxConnWaitTimeout(10*time.Second),
+		client.WithClientReadTimeout(60*time.Second),
+		client.WithWriteTimeout(60*time.Second),
+		client.WithDialer(standard.NewDialer()),
+		client.WithName("hzgo-http-client"))
 }
 
 func GetJSON(url string, data map[string]string, resp interface{}) (err error) {
@@ -26,23 +41,26 @@ func GetJSONWithHeaders(url string, headers, data map[string]string, resp interf
 }
 
 func GetJSONWithHeadersAndTimeout(url string, headers map[string]string, timeout time.Duration, data map[string]string, resp interface{}) (err error) {
-	client := httpclient.WithHeaders(headers)
+	req, res := &protocol.Request{}, &protocol.Response{}
+	req.SetMethod(http.MethodGet)
+	req.SetRequestURI(url)
+	req.SetHeaders(headers)
 	if timeout > 0 {
-		client.WithOption(httpclient.OPT_TIMEOUT, timeout)
+		req.SetOptions(config.WithRequestTimeout(5 * time.Second))
 	}
-	var _resp *httpclient.Response
-	_resp, err = client.Get(url, data)
+	err = defaultClient.Do(context.Background(), req, res)
 	if err != nil {
 		logger.Errorf("http cli url: %v, error: %v", url, err)
 		return
 	}
-	bb, err := _resp.ReadAll()
-	if err != nil {
-		logger.Errorf("http cli url: %v, error: %v", url, err)
+	statusCode := res.StatusCode()
+	if statusCode != http.StatusOK {
+		logger.Errorf("http cli url: %v, error: %v", url, statusCode)
+		err = fmt.Errorf("StatusCode=%d", statusCode)
 		return
 	}
 	if resp != nil {
-		err = json.Unmarshal(bb, &resp)
+		err = json.Unmarshal(res.Body(), &resp)
 		if err != nil {
 			logger.Errorf("http cli url: %v, error: %v", url, err)
 			return
@@ -64,23 +82,33 @@ func PostJSONWithTimeout(url string, timeout time.Duration, data interface{}, re
 }
 
 func PostJSONWithHeadersAndTimeout(url string, headers map[string]string, timeout time.Duration, data interface{}, resp interface{}) (err error) {
-	client := httpclient.WithHeaders(headers)
-	if timeout > 0 {
-		client.WithOption(httpclient.OPT_TIMEOUT, timeout)
-	}
-	var _resp *httpclient.Response
-	_resp, err = client.PostJson(url, data)
-	if err != nil {
-		logger.Errorf("http cli url: %v, error %s", url, err)
-		return
-	}
-	bb, err := _resp.ReadAll()
+	req, res := &protocol.Request{}, &protocol.Response{}
+	bs, err := json.Marshal(data)
 	if err != nil {
 		logger.Errorf("http cli url: %v, error: %v", url, err)
 		return
 	}
+	req.SetBody(bs)
+	req.SetMethod(http.MethodPost)
+	req.SetRequestURI(url)
+	headers["Content-Type"] = "application/json"
+	req.SetHeaders(headers)
+	if timeout > 0 {
+		req.SetOptions(config.WithRequestTimeout(5 * time.Second))
+	}
+	err = defaultClient.Do(context.Background(), req, res)
+	if err != nil {
+		logger.Errorf("http cli url: %v, error: %v", url, err)
+		return
+	}
+	statusCode := res.StatusCode()
+	if statusCode != http.StatusOK {
+		logger.Errorf("http cli url: %v, error: %v", url, statusCode)
+		err = fmt.Errorf("StatusCode=%d", statusCode)
+		return
+	}
 	if resp != nil {
-		err = json.Unmarshal(bb, &resp)
+		err = json.Unmarshal(res.Body(), &resp)
 		if err != nil {
 			logger.Errorf("http cli url: %v, error: %v", url, err)
 			return
