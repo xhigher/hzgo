@@ -3,8 +3,8 @@ package user
 import (
 	"github.com/xhigher/hzgo/bizerr"
 	"github.com/xhigher/hzgo/consts"
-	model "github.com/xhigher/hzgo/demo/admin/model/user"
-	"github.com/xhigher/hzgo/demo/model/db/user"
+	model "github.com/xhigher/hzgo/demos/admin/model/user"
+	"github.com/xhigher/hzgo/demos/model/db/user"
 )
 
 func GetUser(userid string) (userInfo *user.UserInfoModel, be *bizerr.Error) {

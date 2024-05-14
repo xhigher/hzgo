@@ -2,7 +2,7 @@ package logic
 
 import (
 	"context"
-	"github.com/xhigher/hzgo/games/live_game/events"
+	"github.com/xhigher/hzgo/demos/live_game/events"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/server/game"
 	"github.com/xhigher/hzgo/utils"

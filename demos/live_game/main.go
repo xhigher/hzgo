@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/xhigher/hzgo/config"
-	"github.com/xhigher/hzgo/games/live_game/controller"
-	"github.com/xhigher/hzgo/games/live_game/logic"
+	"github.com/xhigher/hzgo/demos/live_game/controller"
+	"github.com/xhigher/hzgo/demos/live_game/logic"
 	"github.com/xhigher/hzgo/server/game"
 )
 

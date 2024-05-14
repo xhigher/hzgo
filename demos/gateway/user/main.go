@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/xhigher/hzgo/config"
-	"github.com/xhigher/hzgo/demo/api"
-	"github.com/xhigher/hzgo/demo/gateway/user/controller"
+	"github.com/xhigher/hzgo/demos/api"
+	"github.com/xhigher/hzgo/demos/gateway/user/controller"
 	"github.com/xhigher/hzgo/server/gateway"
 )
 

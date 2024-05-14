@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/xhigher/hzgo/config"
-	"github.com/xhigher/hzgo/demo/admin/controller"
-	"github.com/xhigher/hzgo/demo/admin/rbac"
-	"github.com/xhigher/hzgo/demo/api"
+	"github.com/xhigher/hzgo/demos/admin/controller"
+	"github.com/xhigher/hzgo/demos/admin/rbac"
+	"github.com/xhigher/hzgo/demos/api"
 	"github.com/xhigher/hzgo/server/admin"
 )
 

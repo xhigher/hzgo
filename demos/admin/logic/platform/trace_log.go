@@ -1,7 +1,7 @@
 package platform
 
 import (
-	model "github.com/xhigher/hzgo/demo/admin/model/platform"
+	model "github.com/xhigher/hzgo/demos/admin/model/platform"
 )
 
 type TraceLog struct {

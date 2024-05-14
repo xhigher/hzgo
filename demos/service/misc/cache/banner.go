@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"github.com/go-redis/redis/v8"
 	"github.com/xhigher/hzgo/consts/cachekey"
-	"github.com/xhigher/hzgo/demo/model/db/misc"
+	"github.com/xhigher/hzgo/demos/model/db/misc"
 	"github.com/xhigher/hzgo/logger"
 )
 

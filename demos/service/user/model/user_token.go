@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/xhigher/hzgo/demo/model/db/user"
+	"github.com/xhigher/hzgo/demos/model/db/user"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/utils"
 	"gorm.io/gorm"

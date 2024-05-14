@@ -3,9 +3,9 @@ package misc
 import (
 	"fmt"
 	"github.com/xhigher/hzgo/consts"
-	"github.com/xhigher/hzgo/demo/model/db/admin"
-	"github.com/xhigher/hzgo/demo/model/db/misc"
-	"github.com/xhigher/hzgo/demo/model/db/user"
+	"github.com/xhigher/hzgo/demos/model/db/admin"
+	"github.com/xhigher/hzgo/demos/model/db/misc"
+	"github.com/xhigher/hzgo/demos/model/db/user"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/utils"
 	"gorm.io/gorm"

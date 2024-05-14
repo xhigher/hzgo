@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/xhigher/hzgo/defines"
-	"github.com/xhigher/hzgo/demo/api"
+	"github.com/xhigher/hzgo/demos/api"
 )
 
 func (ctrl Controller) Logout(ctx context.Context, c *app.RequestContext) {

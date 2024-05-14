@@ -2,9 +2,9 @@ package logic
 
 import (
 	"github.com/xhigher/hzgo/bizerr"
-	"github.com/xhigher/hzgo/demo/model/db/misc"
-	"github.com/xhigher/hzgo/demo/service/misc/cache"
-	"github.com/xhigher/hzgo/demo/service/misc/model"
+	"github.com/xhigher/hzgo/demos/model/db/misc"
+	"github.com/xhigher/hzgo/demos/service/misc/cache"
+	"github.com/xhigher/hzgo/demos/service/misc/model"
 )
 
 func GetConfigList() (sum string, data map[string]*misc.ConfigInfo, be *bizerr.Error) {

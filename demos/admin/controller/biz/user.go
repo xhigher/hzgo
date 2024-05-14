@@ -5,8 +5,8 @@ import (
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/xhigher/hzgo/consts"
 	"github.com/xhigher/hzgo/defines"
-	logic "github.com/xhigher/hzgo/demo/admin/logic/user"
-	"github.com/xhigher/hzgo/demo/admin/rbac"
+	logic "github.com/xhigher/hzgo/demos/admin/logic/user"
+	"github.com/xhigher/hzgo/demos/admin/rbac"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/server/admin"
 )

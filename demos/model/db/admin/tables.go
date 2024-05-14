@@ -2,7 +2,7 @@ package admin
 
 import (
 	"fmt"
-	"github.com/xhigher/hzgo/demo/model/db"
+	"github.com/xhigher/hzgo/demos/model/db"
 	"github.com/xhigher/hzgo/types"
 	"gorm.io/gorm"
 	"time"

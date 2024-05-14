@@ -1,7 +1,7 @@
 package logic
 
 import (
-	"github.com/xhigher/hzgo/games/live_game/model/store"
+	"github.com/xhigher/hzgo/demos/live_game/model/store"
 	"github.com/xhigher/hzgo/utils"
 )
 

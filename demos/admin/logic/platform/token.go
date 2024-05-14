@@ -2,7 +2,7 @@ package platform
 
 import (
 	"github.com/xhigher/hzgo/bizerr"
-	model "github.com/xhigher/hzgo/demo/admin/model/platform"
+	model "github.com/xhigher/hzgo/demos/admin/model/platform"
 	"github.com/xhigher/hzgo/logger"
 )
 

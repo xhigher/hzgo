@@ -14,7 +14,6 @@ require (
 	github.com/alibabacloud-go/tea-utils/v2 v2.0.1
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.6+incompatible
 	github.com/cloudwego/hertz v0.6.2
-	github.com/ddliu/go-httpclient v0.7.1
 	github.com/gin-gonic/gin v1.8.2
 	github.com/go-pay/gopay v1.5.88
 	github.com/go-redis/redis/v8 v8.11.5

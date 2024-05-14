@@ -3,8 +3,8 @@ package misc
 import (
 	"github.com/xhigher/hzgo/bizerr"
 	"github.com/xhigher/hzgo/consts"
-	model "github.com/xhigher/hzgo/demo/admin/model/misc"
-	"github.com/xhigher/hzgo/demo/model/db/misc"
+	model "github.com/xhigher/hzgo/demos/admin/model/misc"
+	"github.com/xhigher/hzgo/demos/model/db/misc"
 )
 
 func SaveBannerInfo(id int32, site string, typ int32, name, img, data string) (reload bool, be *bizerr.Error) {

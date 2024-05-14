@@ -2,8 +2,8 @@ package model
 
 import (
 	"github.com/xhigher/hzgo/consts"
-	"github.com/xhigher/hzgo/demo/model/db/misc"
-	"github.com/xhigher/hzgo/demo/model/db/user"
+	"github.com/xhigher/hzgo/demos/model/db/misc"
+	"github.com/xhigher/hzgo/demos/model/db/user"
 	"github.com/xhigher/hzgo/logger"
 )
 

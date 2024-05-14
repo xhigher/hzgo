@@ -3,7 +3,7 @@ package model
 import (
 	"fmt"
 	"github.com/xhigher/hzgo/consts"
-	"github.com/xhigher/hzgo/demo/model/db/admin"
+	"github.com/xhigher/hzgo/demos/model/db/admin"
 	adminsvr "github.com/xhigher/hzgo/server/admin"
 	"github.com/xhigher/hzgo/types"
 	"github.com/xhigher/hzgo/utils"

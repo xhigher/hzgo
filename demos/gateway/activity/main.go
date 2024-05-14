@@ -2,8 +2,8 @@ package activity
 
 import (
 	"github.com/xhigher/hzgo/config"
-	"github.com/xhigher/hzgo/demo/api"
-	"github.com/xhigher/hzgo/demo/gateway/activity/controller"
+	"github.com/xhigher/hzgo/demos/api"
+	"github.com/xhigher/hzgo/demos/gateway/activity/controller"
 	"github.com/xhigher/hzgo/server/gateway"
 )
 

@@ -3,8 +3,8 @@ package logic
 import (
 	"github.com/xhigher/hzgo/bizerr"
 	"github.com/xhigher/hzgo/consts"
-	"github.com/xhigher/hzgo/demo/model/db/user"
-	"github.com/xhigher/hzgo/demo/service/user/model"
+	"github.com/xhigher/hzgo/demos/model/db/user"
+	"github.com/xhigher/hzgo/demos/service/user/model"
 )
 
 func CheckUser(username, password string) (userid string, be *bizerr.Error) {

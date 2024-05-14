@@ -5,7 +5,7 @@ import (
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/xhigher/hzgo/consts"
 	"github.com/xhigher/hzgo/defines"
-	"github.com/xhigher/hzgo/demo/api"
+	"github.com/xhigher/hzgo/demos/api"
 	"github.com/xhigher/hzgo/server/gateway"
 	"github.com/xhigher/hzgo/server/gateway/middlewares"
 )

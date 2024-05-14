@@ -5,7 +5,7 @@ import (
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/xhigher/hzgo/bizerr"
 	"github.com/xhigher/hzgo/defines"
-	"github.com/xhigher/hzgo/demo/service/misc/logic"
+	"github.com/xhigher/hzgo/demos/service/misc/logic"
 	"github.com/xhigher/hzgo/logger"
 )
 

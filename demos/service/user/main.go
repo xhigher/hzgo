@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/xhigher/hzgo/config"
-	"github.com/xhigher/hzgo/demo/service/user/controller"
+	"github.com/xhigher/hzgo/demos/service/user/controller"
 	"github.com/xhigher/hzgo/server/service"
 )
 

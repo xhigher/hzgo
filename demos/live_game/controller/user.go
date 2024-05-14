@@ -3,7 +3,7 @@ package controller
 import (
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
-	"github.com/xhigher/hzgo/games/live_game/logic"
+	"github.com/xhigher/hzgo/demos/live_game/logic"
 	"github.com/xhigher/hzgo/logger"
 )
 

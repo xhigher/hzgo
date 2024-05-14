@@ -2,7 +2,7 @@ package logic
 
 import (
 	"github.com/xhigher/hzgo/bizerr"
-	"github.com/xhigher/hzgo/demo/service/user/model"
+	"github.com/xhigher/hzgo/demos/service/user/model"
 )
 
 func CheckToken(userid, token string) (ok bool, be *bizerr.Error) {

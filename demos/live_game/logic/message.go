@@ -2,7 +2,7 @@ package logic
 
 import (
 	"encoding/json"
-	"github.com/xhigher/hzgo/games/live_game/maps"
+	"github.com/xhigher/hzgo/demos/live_game/maps"
 	"github.com/xhigher/hzgo/logger"
 )
 

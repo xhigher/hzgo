@@ -3,8 +3,8 @@ package platform
 import (
 	"github.com/xhigher/hzgo/bizerr"
 	"github.com/xhigher/hzgo/consts"
-	model "github.com/xhigher/hzgo/demo/admin/model/platform"
-	"github.com/xhigher/hzgo/demo/model/db/admin"
+	model "github.com/xhigher/hzgo/demos/admin/model/platform"
+	"github.com/xhigher/hzgo/demos/model/db/admin"
 	"github.com/xhigher/hzgo/types"
 )
 

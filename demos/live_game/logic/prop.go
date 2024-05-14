@@ -1,7 +1,7 @@
 package logic
 
 import (
-	"github.com/xhigher/hzgo/games/live_game/maps"
+	"github.com/xhigher/hzgo/demos/live_game/maps"
 	"math/rand"
 	"time"
 )

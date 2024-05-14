@@ -2,7 +2,7 @@ package logic
 
 import (
 	"fmt"
-	"github.com/xhigher/hzgo/games/live_game/maps"
+	"github.com/xhigher/hzgo/demos/live_game/maps"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/utils"
 	"math/rand"
