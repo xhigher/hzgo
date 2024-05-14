@@ -74,14 +74,13 @@ func (s *HzgoNodeServer) ServerSentEvent(ctx context.Context, c *app.RequestCont
 
 	stream := sse.NewStream(c)
 	go func() {
-		s.Heartbeat(stream)
+		s.Heartbeat(uid, stream)
 	}()
 
 	s.register(uid)
 
 	// get messages from user's receive channel
 	for msg := range s.Receive[uid] {
-
 		payload, err := json.Marshal(msg)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())
@@ -95,22 +94,30 @@ func (s *HzgoNodeServer) ServerSentEvent(ctx context.Context, c *app.RequestCont
 		c.SetStatusCode(http.StatusOK)
 		err = stream.Publish(event)
 		if err != nil {
+			hlog.Errorf("message publish failed, uid: %v, error: %v", uid, err)
 			return
 		}
 	}
 }
 
-func (s *HzgoNodeServer) Heartbeat(stream *sse.Stream) {
-	for t := range time.NewTicker(3 * time.Second).C {
+func (s *HzgoNodeServer) Heartbeat(uid string, stream *sse.Stream) {
+	retry := 0
+	for t := range time.NewTicker(2 * time.Second).C {
 		event := &sse.Event{
 			Event: "heartbeat",
 			Data:  []byte(t.Format(time.RFC3339)),
 		}
 		err := stream.Publish(event)
 		if err != nil {
-			return
+			hlog.Errorf("heartbeat publish failed, uid: %v, error: %v", uid, err)
+			retry++
+			if retry >= 3 {
+				return
+			}
 		}
 	}
+	close(s.Receive[uid])
+	delete(s.Receive, uid)
 }
 
 // relay handles messages sent to BroadcastMessageC and DirectMessageC and
@@ -217,13 +224,15 @@ func (s *HzgoNodeServer) ConnectMaster() {
 				s.BroadcastMessageC <- msg
 			} else if e.Event == "direct" {
 				s.DirectMessageC <- msg
+			} else if e.Event == "heartbeat" {
+				hlog.Infof("message heartbeat, nid: %v", s.Id)
 			}
 			return
 		}
 	})
 	if err != nil {
 		hlog.Errorf("node subscribe to master server failed: nid: %v, error: %v", s.Id, err)
-		time.Sleep(3 * time.Second)
+		time.Sleep(2 * time.Second)
 		s.ConnectMaster()
 	}
 }

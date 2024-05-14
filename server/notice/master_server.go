@@ -100,6 +100,7 @@ func (s *HzgoMasterServer) ServerSentEvent(ctx context.Context, c *app.RequestCo
 }
 
 func (s *HzgoMasterServer) Heartbeat(nid string, stream *sse.Stream) {
+	retry := 0
 	for t := range time.NewTicker(3 * time.Second).C {
 		event := &sse.Event{
 			Event: "heartbeat",
@@ -107,10 +108,15 @@ func (s *HzgoMasterServer) Heartbeat(nid string, stream *sse.Stream) {
 		}
 		err := stream.Publish(event)
 		if err != nil {
-			hlog.Errorf("node publish failed, nid: %v, error: %v", nid, err)
-			return
+			hlog.Errorf("heartbeat publish failed, nid: %v, error: %v", nid, err)
+			retry++
+			if retry >= 3 {
+				return
+			}
 		}
 	}
+	close(s.Receive[nid])
+	delete(s.Receive, nid)
 }
 
 func (s *HzgoMasterServer) Register(ctx context.Context, c *app.RequestContext) {
