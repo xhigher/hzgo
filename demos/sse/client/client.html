@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+<script type="text/javascript">
+    (function() {
+
+        var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ4aGlnaGVyIiwic3ViIjoiMTIzNDU2IiwiYXVkIjpbIndlYiJdLCJleHAiOjE3MTU2MDI3NDQsImlhdCI6MTcxNTU5OTE0NCwianRpIjoiMGZjYzg5YWUyMmQ1YTcyOWY4MzRmODY2M2I5YmQ2NTQifQ.bstBz23M2fex_U_5gckE2gmZiw5RHT8LWr1-jBtMGqo"
+        var source = new EventSource('http://127.0.0.1:8080/sse?token='+token)
+        source.onopen = function(event) {
+            console.log(event)
+        }
+
+        source.onmessage = function(event) {
+            console.log(event)
+        }
+
+        source.onerror = function(error) {
+            console.log(error)
+        }
+    })()
+</script>
+</body>
+</html>

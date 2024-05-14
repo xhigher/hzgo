@@ -1,0 +1,16 @@
+name: "svc-user"
+addr: 0.0.0.0:9000
+logger:
+  filename: /dev/stdout
+
+mysql:
+  - host: 127.0.0.1
+    port: 3306
+    db-name: hertz_user
+    extras:
+    user: root
+    password: 123123
+    max-idle-conns: 20
+    max-open-conns: 20
+    logger-mode:
+    logger-zap:

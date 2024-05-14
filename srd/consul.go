@@ -4,8 +4,8 @@ import (
 	"fmt"
 	consulapi "github.com/hashicorp/consul/api"
 	"github.com/hertz-contrib/registry/consul"
-	"log"
 	"github.com/xhigher/hzgo/env"
+	"log"
 )
 
 func (mgr *Manager) initConsul(conf *ConsulConfig) (err error) {

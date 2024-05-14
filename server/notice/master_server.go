@@ -68,19 +68,21 @@ func (s *HzgoMasterServer) ServerSentEvent(ctx context.Context, c *app.RequestCo
 	nid := c.Query("nid")
 	stream := sse.NewStream(c)
 	go func() {
-		s.Heartbeat(stream)
+		s.Heartbeat(nid, stream)
 	}()
+	hlog.CtxInfof(ctx, "node connected, nid: %v", nid)
 	for msg := range s.Receive[nid] {
 		c.SetStatusCode(http.StatusOK)
 		payload, err := json.Marshal(msg)
 		if err != nil {
-			hlog.CtxInfof(ctx, "message error: %+v, %v", msg, err)
+			hlog.CtxInfof(ctx, "message json error: %+v, %v", msg, err)
 			event := &sse.Event{
 				Event: "error",
 				Data:  []byte(err.Error()),
 			}
 			err = stream.Publish(event)
 			if err != nil {
+				hlog.CtxInfof(ctx, "message publish error: %+v, %v", msg, err)
 				return
 			}
 		}
@@ -91,12 +93,13 @@ func (s *HzgoMasterServer) ServerSentEvent(ctx context.Context, c *app.RequestCo
 		}
 		err = stream.Publish(event)
 		if err != nil {
+			hlog.CtxInfof(ctx, "message publish error: %+v, %v", msg, err)
 			return
 		}
 	}
 }
 
-func (s *HzgoMasterServer) Heartbeat(stream *sse.Stream) {
+func (s *HzgoMasterServer) Heartbeat(nid string, stream *sse.Stream) {
 	for t := range time.NewTicker(3 * time.Second).C {
 		event := &sse.Event{
 			Event: "heartbeat",
@@ -104,6 +107,7 @@ func (s *HzgoMasterServer) Heartbeat(stream *sse.Stream) {
 		}
 		err := stream.Publish(event)
 		if err != nil {
+			hlog.Errorf("node publish failed, nid: %v, error: %v", nid, err)
 			return
 		}
 	}
@@ -144,7 +148,7 @@ func (s *HzgoMasterServer) MessageBroadcast(ctx context.Context, c *app.RequestC
 	// deliver message to DirectMessageC.
 	s.BroadcastMessageC <- msg
 
-	hlog.CtxInfof(ctx, "message sent: %+v", msg)
+	hlog.CtxInfof(ctx, "message broadcast: %+v", msg)
 	c.AbortWithStatus(http.StatusOK)
 }
 
@@ -167,7 +171,7 @@ func (s *HzgoMasterServer) MessageChannel(ctx context.Context, c *app.RequestCon
 	// deliver message to DirectMessageC.
 	s.DirectMessageC <- msg
 
-	hlog.CtxInfof(ctx, "message sent: %+v", msg)
+	hlog.CtxInfof(ctx, "message channel: %+v", msg)
 	c.AbortWithStatus(http.StatusOK)
 }
 
@@ -190,7 +194,7 @@ func (s *HzgoMasterServer) MessageDirect(ctx context.Context, c *app.RequestCont
 	// deliver message to DirectMessageC.
 	s.DirectMessageC <- msg
 
-	hlog.CtxInfof(ctx, "message sent: %+v", msg)
+	hlog.CtxInfof(ctx, "message direct: %+v", msg)
 	c.AbortWithStatus(http.StatusOK)
 }
 

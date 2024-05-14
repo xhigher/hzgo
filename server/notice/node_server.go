@@ -58,8 +58,7 @@ func NewNodeServer(conf *config.ServerConfig) *HzgoNodeServer {
 
 	go svr.relay()
 
-	hz.Use(svr.CreateReceiveChannel())
-	hz.Use(svr.CorsHandle())
+	hz.Use(svr.CorsHandle(), svr.CreateReceiveChannel())
 	hz.GET("/sse", svr.ServerSentEvent)
 
 	return svr
@@ -178,8 +177,10 @@ func (s *HzgoNodeServer) CreateReceiveChannel() app.HandlerFunc {
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
+		hlog.CtxInfof(ctx, "token: %v", token)
 		uid, did, err := s.tokenHelper.ParseTokenInfo(token)
 		if err != nil {
+			hlog.Errorf("token: %v, error: %v", token, err)
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
@@ -200,18 +201,18 @@ func (s *HzgoNodeServer) ConnectMaster() {
 
 	// touch off when connected to the server
 	c.SetOnConnectCallback(func(ctx context.Context, client *sse.Client) {
-		hlog.Infof("client1 connect to server %s success with %s method", c.GetURL(), c.GetMethod())
+		hlog.Infof("node connect to master server %s success", c.GetURL())
 	})
 
 	// touch off when the connection is shutdown
 	c.SetDisconnectCallback(func(ctx context.Context, client *sse.Client) {
-		hlog.Infof("client1 disconnect to server %s success with %s method", c.GetURL(), c.GetMethod())
+		hlog.Infof("node disconnect to master server %s success", c.GetURL())
 	})
 
-	c.SubscribeWithContext(context.Background(), func(e *sse.Event) {
+	err := c.Subscribe(func(e *sse.Event) {
 		if e.Data != nil {
 			msg := Message{}
-			json.Unmarshal(e.Data, msg)
+			json.Unmarshal(e.Data, &msg)
 			if e.Event == "broadcast" {
 				s.BroadcastMessageC <- msg
 			} else if e.Event == "direct" {
@@ -220,6 +221,11 @@ func (s *HzgoNodeServer) ConnectMaster() {
 			return
 		}
 	})
+	if err != nil {
+		hlog.Errorf("node subscribe to master server failed: nid: %v, error: %v", s.Id, err)
+		time.Sleep(3 * time.Second)
+		s.ConnectMaster()
+	}
 }
 
 func (s *HzgoNodeServer) Start() {

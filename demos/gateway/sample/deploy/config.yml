@@ -1,0 +1,16 @@
+name: "gw-user"
+addr: 0.0.0.0:8000
+
+logger:
+  filename: /dev/stdout
+
+sec:
+  sign-secret: ysntsFNlD4nwuolcc8evZtTPsToizNtA
+  sign-key-name: sign
+
+jwt:
+  realm: hzgo_demo
+  issuer: xhigher
+  secret-key: xhigher123
+  timeout: 2
+  max-refresh-time: 1

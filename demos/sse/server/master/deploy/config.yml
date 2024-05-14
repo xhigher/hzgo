@@ -1,0 +1,13 @@
+name: "nice-notice-master"
+
+addr: 0.0.0.0:8090
+
+logger:
+  filename: /dev/stdout
+
+jwt:
+  realm: hzgo_admin
+  issuer: xhigher
+  secret-key: xhigher123
+  timeout: 2
+  max-refresh-time: 1

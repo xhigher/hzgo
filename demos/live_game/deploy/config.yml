@@ -1,0 +1,17 @@
+name: "live-game"
+addr: 0.0.0.0:8080
+
+logger:
+  filename: /dev/stdout
+
+mysql:
+  - host: 127.0.0.1
+    port: 3306
+    db-name: live_game
+    extras:
+    user: ywgame
+    password: xNbB$!wHWLKFxsqxrzd0
+    max-idle-conns: 20
+    max-open-conns: 20
+    logger-mode:
+    logger-zap:
