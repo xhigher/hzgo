@@ -49,8 +49,8 @@ func (md StaffModule) Routers() []admin.Router {
 		},
 		{
 			Method:  consts.MethodPost,
-			Name:    "status_change",
-			Handler: md.StatusChange,
+			Name:    "change_status",
+			Handler: md.ChangeStatus,
 		},
 		{
 			Method:  consts.MethodGet,
@@ -195,14 +195,14 @@ func (md StaffModule) RolesEdit(ctx context.Context, c *app.RequestContext) {
 	resp.ReplyOK()
 }
 
-type StatusChangeReq struct {
+type ChangeStatusReq struct {
 	Uid    string `json:"uid"`
 	Status int32  `json:"roles"`
 }
 
-func (md StaffModule) StatusChange(ctx context.Context, c *app.RequestContext) {
+func (md StaffModule) ChangeStatus(ctx context.Context, c *app.RequestContext) {
 	resp := md.ctrl.Resp(c)
-	params := StatusChangeReq{}
+	params := ChangeStatusReq{}
 	if err := c.Bind(&params); err != nil {
 		resp.ReplyErrorParam()
 		return
@@ -224,7 +224,7 @@ func (md StaffModule) StatusChange(ctx context.Context, c *app.RequestContext) {
 	resp.ReplyOK()
 }
 
-type TraceLogPageReq struct {
+type TraceLogsPageReq struct {
 	Uid    string `form:"uid" json:"uid" query:"uid"`
 	Module string `form:"module" json:"module" query:"module"`
 	Offset int32  `form:"offset" json:"offset" query:"offset"`
@@ -233,7 +233,7 @@ type TraceLogPageReq struct {
 
 func (md StaffModule) TraceLogs(ctx context.Context, c *app.RequestContext) {
 	resp := md.ctrl.Resp(c)
-	params := TraceLogPageReq{}
+	params := TraceLogsPageReq{}
 	if err := c.Bind(&params); err != nil {
 		resp.ReplyErrorParam()
 		return

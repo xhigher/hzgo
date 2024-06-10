@@ -157,3 +157,16 @@ func (md PlatformHandler) Profile(ctx context.Context, c *app.RequestContext) {
 
 	resp.ReplyData(userInfo)
 }
+
+func (md PlatformHandler) Menus(ctx context.Context, c *app.RequestContext) {
+	resp := md.ctrl.Resp(c)
+	roles := md.ctrl.Roles(c)
+	menus, be := logic.GetRolesMenuList(roles)
+	if be != nil {
+		logger.Errorf("error: %v", be.String())
+		resp.ReplyErr(be.ToResp())
+		return
+	}
+
+	resp.ReplyData(menus)
+}

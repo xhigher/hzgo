@@ -15,6 +15,7 @@ type PlatformModuleHandler interface {
 	Login(ctx context.Context, c *app.RequestContext)
 	Logout(ctx context.Context, c *app.RequestContext)
 	Profile(ctx context.Context, c *app.RequestContext)
+	Menus(ctx context.Context, c *app.RequestContext)
 }
 
 type ModuleManager interface {
@@ -50,6 +51,11 @@ func (md PlatformModule) Routers() []Router {
 			Name:    "profile",
 			Handler: md.Profile,
 		},
+		{
+			Method:  consts.MethodGet,
+			Name:    "menus",
+			Handler: md.Menus,
+		},
 	}
 }
 
@@ -63,4 +69,8 @@ func (md PlatformModule) Logout(ctx context.Context, c *app.RequestContext) {
 
 func (md PlatformModule) Profile(ctx context.Context, c *app.RequestContext) {
 	md.handler.Profile(ctx, c)
+}
+
+func (md PlatformModule) Menus(ctx context.Context, c *app.RequestContext) {
+	md.handler.Menus(ctx, c)
 }

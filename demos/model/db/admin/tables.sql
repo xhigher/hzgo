@@ -61,8 +61,9 @@ CREATE TABLE `role_permissions`
 CREATE TABLE `menu_info`
 (
     `mid`     int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
-    `path` VARCHAR(100) NOT NULL DEFAULT '' COMMENT '',
+    `icon` varchar(50) NOT NULL DEFAULT '',
     `name` varchar(100) NOT NULL DEFAULT '',
+    `path` VARCHAR(100) NOT NULL DEFAULT '' COMMENT '',
     `up_mid`     int(10) unsigned NOT NULL DEFAULT 0 COMMENT 'ID',
     `status`   TINYINT(1) UNSIGNED NOT NULL DEFAULT 0  COMMENT '状态',
     `ut`       bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '修改时间',

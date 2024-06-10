@@ -67,6 +67,7 @@ func (RoleInfoModel) TableName() string {
 }
 
 type RolePermissionsModel struct {
+	Id   int    `json:"id" xorm:"id" gorm:"column:id"`
 	Rid  string `json:"rid" xorm:"rid" gorm:"column:rid"`
 	Path string `json:"path" xorm:"path" gorm:"column:path"`
 	Ut   int64  `json:"ut" xorm:"ut" gorm:"column:ut"`
@@ -78,7 +79,10 @@ func (RolePermissionsModel) TableName() string {
 
 type MenuInfoModel struct {
 	Mid    int    `json:"mid" xorm:"mid" gorm:"column:mid"`
+	Icon   string `json:"icon" xorm:"icon" gorm:"column:icon"`
+	Name   string `json:"name" xorm:"name" gorm:"column:name"`
 	Path   string `json:"path" xorm:"path" gorm:"column:path"`
+	UpMid  int    `json:"up_mid" xorm:"up_mid" gorm:"column:up_mid"`
 	Status int32  `json:"status" xorm:"status" gorm:"column:status"`
 	Ut     int64  `json:"ut" xorm:"ut" gorm:"column:ut"`
 }
@@ -88,10 +92,12 @@ func (MenuInfoModel) TableName() string {
 }
 
 type RoleMenusModel struct {
-	Rid  string `json:"rid" xorm:"rid" gorm:"column:rid"`
-	Mid  int    `json:"mid" xorm:"mid" gorm:"column:mid"`
-	Path string `json:"path" xorm:"path" gorm:"column:path"`
-	Ut   int64  `json:"ut" xorm:"ut" gorm:"column:ut"`
+	Id    int    `json:"id" xorm:"id" gorm:"column:id"`
+	Rid   string `json:"rid" xorm:"rid" gorm:"column:rid"`
+	Mid   int    `json:"mid" xorm:"mid" gorm:"column:mid"`
+	UpMid int    `json:"up_mid" xorm:"up_mid" gorm:"column:up_mid"`
+	Path  string `json:"path" xorm:"path" gorm:"column:path"`
+	Ut    int64  `json:"ut" xorm:"ut" gorm:"column:ut"`
 }
 
 func (RoleMenusModel) TableName() string {
