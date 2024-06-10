@@ -76,7 +76,7 @@ func (t TraceLogSaver) AddLog(ctx *app.RequestContext, result resp.BaseResp) {
 
 		uid := admin.GetSubject(ctx)
 		roles := admin.GetAudience(ctx)
-		logic.AddLog(module, action, params, result, roles, uid)
+		logic.AddLog(module, ctx.FullPath(), params, result, roles, uid)
 	}
 }
 

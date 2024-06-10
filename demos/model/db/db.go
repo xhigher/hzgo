@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	namePrefix = "hertz_"
+	namePrefix = "pa_"
 
 	nameAdmin = namePrefix + "admin"
 

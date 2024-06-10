@@ -18,20 +18,20 @@ jwt:
 mysql:
   - host: 127.0.0.1
     port: 3306
-    db-name: hertz_admin
+    db-name: pa_admin
     extras:
     user: root
-    password: 123123
+    password: 7isAs3ua)j4*6vmu
     max-idle-conns: 20
     max-open-conns: 20
     logger-mode:
     logger-zap:
   - host: 127.0.0.1
     port: 3306
-    db-name: hertz_user
+    db-name: pa_user
     extras:
     user: root
-    password: 123123
+    password: 7isAs3ua)j4*6vmu
     max-idle-conns: 20
     max-open-conns: 20
     logger-mode:

@@ -16,7 +16,7 @@ CREATE TABLE `staff_info`
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户基本信息表';
 
 
-CREATE TABLE `user_token`
+CREATE TABLE `staff_token`
 (
     `uid` char(6)    NOT NULL DEFAULT '' COMMENT '用户ID',
     `token`  varchar(32) NOT NULL DEFAULT '' COMMENT 'token ID',

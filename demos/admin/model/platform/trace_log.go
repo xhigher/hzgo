@@ -7,10 +7,10 @@ import (
 	"gorm.io/gorm"
 )
 
-func AddTraceLog(module, action string, params, result interface{}, roles []string, uid string) (err error) {
+func AddTraceLog(module, path string, params, result interface{}, roles []string, uid string) (err error) {
 	model := &admin.TraceLogModel{
 		Module: module,
-		Action: action,
+		Path:   path,
 		Params: utils.JSONString(params),
 		Result: utils.JSONString(result),
 		Roles:  utils.JSONString(roles),

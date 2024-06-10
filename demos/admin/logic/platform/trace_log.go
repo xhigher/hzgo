@@ -13,8 +13,8 @@ type TraceLog struct {
 	Uid    string      `json:"uid"`
 }
 
-func AddLog(module, action string, params, result interface{}, roles []string, uid string) {
-	err := model.AddTraceLog(module, action, params, result, roles, uid)
+func AddLog(module, path string, params, result interface{}, roles []string, uid string) {
+	err := model.AddTraceLog(module, path, params, result, roles, uid)
 	if err != nil {
 		return
 	}

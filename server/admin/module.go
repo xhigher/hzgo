@@ -36,18 +36,18 @@ func (md PlatformModule) Routers() []Router {
 	return []Router{
 		{
 			Method:  consts.MethodPost,
-			Path:    "login",
+			Name:    "login",
 			NoAuth:  true,
 			Handler: md.Login,
 		},
 		{
 			Method:  consts.MethodGet,
-			Path:    "logout",
+			Name:    "logout",
 			Handler: md.Logout,
 		},
 		{
 			Method:  consts.MethodGet,
-			Path:    "profile",
+			Name:    "profile",
 			Handler: md.Profile,
 		},
 	}

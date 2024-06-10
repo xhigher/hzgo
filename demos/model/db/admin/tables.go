@@ -1,11 +1,9 @@
 package admin
 
 import (
-	"fmt"
 	"github.com/xhigher/hzgo/demos/model/db"
 	"github.com/xhigher/hzgo/types"
 	"gorm.io/gorm"
-	"time"
 )
 
 func DB() *gorm.DB {
@@ -44,6 +42,7 @@ func (t *StaffTokenModel) TableName() string {
 
 type TraceLogModel struct {
 	Id     int64  `json:"id" gorm:"column:id"`
+	Module string `json:"module" gorm:"column:module"`
 	Path   string `json:"path" gorm:"column:path"`
 	Params string `json:"params" gorm:"column:params"`
 	Result string `json:"result" gorm:"column:result"`
@@ -53,7 +52,7 @@ type TraceLogModel struct {
 }
 
 func (TraceLogModel) TableName() string {
-	return fmt.Sprintf("trace_log_%d", time.Now().Year())
+	return "trace_log"
 }
 
 type RoleInfoModel struct {
