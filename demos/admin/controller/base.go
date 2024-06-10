@@ -46,6 +46,11 @@ func New(auth *admin.Auth) Controller {
 	auth.CheckTokenFunc = func(ctx context.Context, c *app.RequestContext, claims *admin.Claims) (bool, *bizerr.Error) {
 		return logic.TokenCheck(claims.Subject, claims.TokenId)
 	}
+
+	auth.RenewalTokenFunc = func(ctx context.Context, c *app.RequestContext, claims *admin.Claims) *bizerr.Error {
+		return logic.TokenUpdate(claims.Subject, claims.TokenId, claims.ExpiredAt, claims.IssuedAt)
+	}
+
 	return ctrl
 }
 

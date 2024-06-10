@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/golang-jwt/jwt/v4"
-	"strings"
-	"time"
 	"github.com/xhigher/hzgo/bizerr"
 	"github.com/xhigher/hzgo/config"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/resp"
 	"github.com/xhigher/hzgo/utils"
+	"strings"
+	"time"
 )
 
 const (
@@ -54,6 +54,8 @@ type Auth struct {
 	MaxRefreshTime time.Duration
 
 	CheckTokenFunc func(ctx context.Context, c *app.RequestContext, claims *Claims) (bool, *bizerr.Error)
+
+	RenewalTokenFunc func(ctx context.Context, c *app.RequestContext, claims *Claims) *bizerr.Error
 }
 
 func NewAuth(conf *config.JWTConfig) *Auth {
@@ -112,6 +114,8 @@ func (mw *Auth) Handler() app.HandlerFunc {
 				_resp.ReplyErrorAuthorization()
 				return
 			}
+
+			mw.renewalToken(ctx, c, claims)
 
 		}
 
@@ -195,23 +199,8 @@ func (mw *Auth) CreateToken(c *app.RequestContext, subject string, audience []st
 	return
 }
 
-func (mw *Auth) RenewalToken(c *app.RequestContext) (tokenValue string, claims *Claims, err error) {
-	_resp := resp.Responder{Ctx: c}
-	tokenString := GetToken(c)
-	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(t *jwt.Token) (interface{}, error) {
-		if jwt.GetSigningMethod(SigningAlgorithm) != t.Method {
-			return nil, ErrInvalidSigningAlgorithm
-		}
-
-		return mw.SecretKey, nil
-	})
-	if err != nil {
-		_resp.ReplyErrorAuthorization()
-		return
-	}
-	regClaims := token.Claims.(*jwt.RegisteredClaims)
-	if !regClaims.VerifyIssuedAt(time.Now().Add(-mw.MaxRefreshTime), true) {
-		_resp.ReplyErrorAuthorization()
+func (mw *Auth) renewalToken(ctx context.Context, c *app.RequestContext, regClaims *jwt.RegisteredClaims) {
+	if !regClaims.VerifyExpiresAt(time.Now().Add(mw.MaxRefreshTime), true) {
 		return
 	}
 
@@ -220,11 +209,15 @@ func (mw *Auth) RenewalToken(c *app.RequestContext) (tokenValue string, claims *
 	regClaims.ExpiresAt = jwt.NewNumericDate(expiresAt)
 	regClaims.IssuedAt = jwt.NewNumericDate(issuedAt)
 	newToken := jwt.NewWithClaims(jwt.GetSigningMethod(SigningAlgorithm), regClaims)
-	tokenValue, err = newToken.SignedString(mw.SecretKey)
+	tokenValue, err := newToken.SignedString(mw.SecretKey)
 	if err != nil {
 		return
 	}
-	claims = mw.getClaims(regClaims)
+	berr := mw.RenewalTokenFunc(ctx, c, mw.getClaims(regClaims))
+	if berr != nil {
+		return
+	}
+	c.Response.Header.Set(TokenHeaderKey, TokenValuePrefix+" "+tokenValue)
 	return
 }
 
