@@ -23,7 +23,7 @@ func (ctrl Controller) Routers() []gateway.Router {
 		{
 			Method:  consts.MethodPost,
 			Version: 1,
-			Path:    "register",
+			Name:    "register",
 			Sign:    true,
 			Auth:    false,
 			Handler: ctrl.Register,
@@ -31,7 +31,7 @@ func (ctrl Controller) Routers() []gateway.Router {
 		{
 			Method:  consts.MethodPost,
 			Version: 1,
-			Path:    "login",
+			Name:    "login",
 			Sign:    true,
 			Auth:    false,
 			Handler: ctrl.Login,
@@ -39,7 +39,7 @@ func (ctrl Controller) Routers() []gateway.Router {
 		{
 			Method:  consts.MethodGet,
 			Version: 1,
-			Path:    "logout",
+			Name:    "logout",
 			Sign:    true,
 			Auth:    true,
 			Handler: ctrl.Logout,
@@ -47,7 +47,7 @@ func (ctrl Controller) Routers() []gateway.Router {
 		{
 			Method:  consts.MethodGet,
 			Version: 1,
-			Path:    "renewal",
+			Name:    "renewal",
 			Sign:    true,
 			Auth:    true,
 			Handler: ctrl.Renewal,
@@ -55,7 +55,7 @@ func (ctrl Controller) Routers() []gateway.Router {
 		{
 			Method:  consts.MethodGet,
 			Version: 1,
-			Path:    "profile",
+			Name:    "profile",
 			Sign:    true,
 			Auth:    true,
 			Handler: ctrl.Profile,

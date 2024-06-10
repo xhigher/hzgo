@@ -44,8 +44,7 @@ func (t *StaffTokenModel) TableName() string {
 
 type TraceLogModel struct {
 	Id     int64  `json:"id" gorm:"column:id"`
-	Module string `json:"module" gorm:"column:module"`
-	Action string `json:"action" gorm:"column:action"`
+	Path   string `json:"path" gorm:"column:path"`
 	Params string `json:"params" gorm:"column:params"`
 	Result string `json:"result" gorm:"column:result"`
 	Roles  string `json:"roles" gorm:"column:roles"`
@@ -55,4 +54,47 @@ type TraceLogModel struct {
 
 func (TraceLogModel) TableName() string {
 	return fmt.Sprintf("trace_log_%d", time.Now().Year())
+}
+
+type RoleInfoModel struct {
+	Rid    string `json:"rid" xorm:"rid" gorm:"column:rid"`
+	Name   string `json:"name" xorm:"name" gorm:"column:name"`
+	Status int32  `json:"status" xorm:"status" gorm:"column:status"`
+	Ut     int64  `json:"ut" xorm:"ut" gorm:"column:ut"`
+}
+
+func (RoleInfoModel) TableName() string {
+	return "role_info"
+}
+
+type RolePermissionsModel struct {
+	Rid  string `json:"rid" xorm:"rid" gorm:"column:rid"`
+	Path string `json:"path" xorm:"path" gorm:"column:path"`
+	Ut   int64  `json:"ut" xorm:"ut" gorm:"column:ut"`
+}
+
+func (RolePermissionsModel) TableName() string {
+	return "role_permissions"
+}
+
+type MenuInfoModel struct {
+	Mid    int    `json:"mid" xorm:"mid" gorm:"column:mid"`
+	Path   string `json:"path" xorm:"path" gorm:"column:path"`
+	Status int32  `json:"status" xorm:"status" gorm:"column:status"`
+	Ut     int64  `json:"ut" xorm:"ut" gorm:"column:ut"`
+}
+
+func (MenuInfoModel) TableName() string {
+	return "menu_info"
+}
+
+type RoleMenusModel struct {
+	Rid  string `json:"rid" xorm:"rid" gorm:"column:rid"`
+	Mid  int    `json:"mid" xorm:"mid" gorm:"column:mid"`
+	Path string `json:"path" xorm:"path" gorm:"column:path"`
+	Ut   int64  `json:"ut" xorm:"ut" gorm:"column:ut"`
+}
+
+func (RoleMenusModel) TableName() string {
+	return "role_menus"
 }

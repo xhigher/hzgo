@@ -6,6 +6,7 @@ import (
 
 type Router struct {
 	Version int
+	Name    string
 	Path    string
 	Handler app.HandlerFunc
 }

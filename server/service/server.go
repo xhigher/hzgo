@@ -44,8 +44,8 @@ func (s *Server) InitRouter(mgr RouterManager) {
 		if r.Version == 0 {
 			r.Version = 1
 		}
-		path := fmt.Sprintf("/%s/v%d/%s", mgr.Name(), r.Version, r.Path)
-		s.Hz.POST(path, r.Handler)
+		r.Path = fmt.Sprintf("/%s/v%d/%s", mgr.Name(), r.Version, r.Name)
+		s.Hz.POST(r.Path, r.Handler)
 	}
 }
 

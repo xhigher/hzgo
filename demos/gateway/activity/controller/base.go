@@ -23,7 +23,7 @@ func (ctrl Controller) Routers() []gateway.Router {
 		{
 			Method:  consts.MethodGet,
 			Version: 1,
-			Path:    "test",
+			Name:    "test",
 			Sign:    true,
 			Auth:    true,
 			Handler: ctrl.Test,

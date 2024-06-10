@@ -8,6 +8,7 @@ import (
 type Router struct {
 	Method  consts.HttpMethod
 	Version int
+	Name    string
 	Path    string
 	Auth    bool
 	Sign    bool

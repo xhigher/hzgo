@@ -18,12 +18,12 @@ func (c Controller) Routers() []game.Router {
 	return []game.Router{
 		{
 			Method:  consts.MethodGet,
-			Path:    "wechat_login",
+			Name:    "wechat_login",
 			Handler: c.WechatLogin,
 		},
 		{
 			Method:  consts.MethodGet,
-			Path:    "user_info",
+			Name:    "user_info",
 			Handler: c.UserInfo,
 		},
 	}

@@ -39,20 +39,13 @@ func (s *HzgoServer) InitRouters(mgr ModuleManager) {
 			if r.Version == 0 {
 				r.Version = 1
 			}
-			r.mergeRoles(m.Roles())
-
-			path := r.FullPath(m.Name())
+			r.Path = r.FullPath(m.Name())
 			handlers := []app.HandlerFunc{
 				s.Auth.Handler(),
-				r.PermissionFunc(m),
+				r.PermissionFunc(),
 				r.Handler,
 			}
-			switch r.Method {
-			case consts.MethodPost:
-				s.Hz.POST(path, handlers...)
-			case consts.MethodGet:
-				s.Hz.GET(path, handlers...)
-			}
+			s.Hz.Handle(string(r.Method), r.Path, handlers...)
 		}
 	}
 }
@@ -66,7 +59,7 @@ func (s *HzgoServer) initPlatformModuleRouters(mgr ModuleManager) {
 		if r.Version == 0 {
 			r.Version = 1
 		}
-		path := r.FullPath(m.Name())
+		r.Path = r.FullPath(m.Name())
 		handlers := []app.HandlerFunc{
 			s.Auth.Handler(),
 			r.Handler,
@@ -76,12 +69,7 @@ func (s *HzgoServer) initPlatformModuleRouters(mgr ModuleManager) {
 				r.Handler,
 			}
 		}
-		switch r.Method {
-		case consts.MethodPost:
-			s.Hz.POST(path, handlers...)
-		case consts.MethodGet:
-			s.Hz.GET(path, handlers...)
-		}
+		s.Hz.Handle(string(r.Method), r.Path, handlers...)
 	}
 }
 

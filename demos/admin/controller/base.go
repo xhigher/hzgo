@@ -70,7 +70,7 @@ func (t TraceLogSaver) AddLog(ctx *app.RequestContext, result resp.BaseResp) {
 			delete(params, "password")
 			result.Data = nil
 		}
-		if module == "staff" && action == "reset_password" {
+		if module == "staff" && action == "password_reset" {
 			result.Data = nil
 		}
 

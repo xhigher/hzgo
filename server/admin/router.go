@@ -4,54 +4,39 @@ import (
 	"context"
 	"fmt"
 	"github.com/cloudwego/hertz/pkg/app"
-	"regexp"
-	"strconv"
 	"github.com/xhigher/hzgo/consts"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/resp"
+	"regexp"
+	"strconv"
 )
 
 type Router struct {
 	Method  consts.HttpMethod
 	Version int
+	Name    string
 	Path    string
 	NoAuth  bool
-	Roles   []string
 	Handler app.HandlerFunc
 }
 
-func (r Router) PermissionFunc(m Module) app.HandlerFunc {
+func (r Router) PermissionFunc() app.HandlerFunc {
 	return func(ctx context.Context, c *app.RequestContext) {
 		resp := resp.Responder{Ctx: c}
-		typ := CRUDRead
-		if r.Method == consts.MethodPost {
-			typ = CRUDWrite
-		}
-		myRoles := GetAudience(c)
-		if len(myRoles) == 0 {
+		roles := GetAudience(c)
+		if len(roles) == 0 {
 			resp.ReplyErrorPermission()
 			return
 		}
 		allow := false
-		logger.Infof("router.roles: %v, my.roles: %v", r.Roles, myRoles)
-		for _, role := range myRoles {
-			if r.containRole(role) {
-				p := getModulePermission(role, m.Name())
-				if typ == CRUDRead {
-					if !p.read {
-						logger.Warnf("permission error: %v, %v, %v, %v", role, m.Name(), typ, p.read)
-						resp.ReplyErrorPermission()
-						return
-					}
-				} else {
-					if !p.write {
-						logger.Warnf("permission error: %v, %v, %v, %v", role, m.Name(), typ, p.write)
-						resp.ReplyErrorPermission()
-						return
-					}
-				}
-				allow = true
+		logger.Infof("staff.roles: %v", roles)
+		for _, role := range roles {
+			if !CheckPermission(role, r.Path) {
+				logger.Warnf("permission error: %v, %v", role, r.Path)
+				resp.ReplyErrorPermission()
+				return
 			}
+			allow = true
 		}
 		if !allow {
 			resp.ReplyErrorPermission()
@@ -63,39 +48,12 @@ func (r Router) PermissionFunc(m Module) app.HandlerFunc {
 
 }
 
-func (r *Router) mergeRoles(roles []string) {
-	if len(r.Roles) == 0 {
-		r.Roles = roles
-		return
-	}
-	roles2 := r.Roles
-	rm := map[string]int{}
-	for _, tr := range r.Roles {
-		rm[tr] = 1
-	}
-	for _, tr := range roles {
-		if _, ok := rm[tr]; !ok {
-			roles2 = append(roles2, tr)
-		}
-	}
-	r.Roles = roles2
-}
-
-func (r Router) containRole(role string) bool {
-	for _, tr := range r.Roles {
-		if tr == role {
-			return true
-		}
-	}
-	return false
-}
-
 var (
 	pathRegex = regexp.MustCompile(`^/(\w+)\/v(\d+)\/(\w+)$`)
 )
 
 func (r Router) FullPath(module string) string {
-	return fmt.Sprintf("/%s/v%d/%s", module, r.Version, r.Path)
+	return fmt.Sprintf("/%s/v%d/%s", module, r.Version, r.Name)
 }
 
 func ParseRouterPath(path string) (module, action string, version int) {

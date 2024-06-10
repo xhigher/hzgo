@@ -20,45 +20,41 @@ func (md StaffModule) Name() string {
 	return rbac.Staff
 }
 
-func (md StaffModule) Roles() []string {
-	return []string{admin.RoleMaintainer}
-}
-
 func (md StaffModule) Routers() []admin.Router {
 	return []admin.Router{
 		{
 			Method:  consts.MethodGet,
-			Path:    "info",
+			Name:    "info",
 			Handler: md.Info,
 		},
 		{
 			Method:  consts.MethodGet,
-			Path:    "list",
+			Name:    "list",
 			Handler: md.List,
 		},
 		{
 			Method:  consts.MethodPost,
-			Path:    "create",
+			Name:    "create",
 			Handler: md.Create,
 		},
 		{
 			Method:  consts.MethodPost,
-			Path:    "reset_password",
-			Handler: md.ResetPassword,
+			Name:    "password_reset",
+			Handler: md.PasswordReset,
 		},
 		{
 			Method:  consts.MethodPost,
-			Path:    "update_roles",
-			Handler: md.UpdateRoles,
+			Name:    "roles_edit",
+			Handler: md.RolesEdit,
 		},
 		{
 			Method:  consts.MethodPost,
-			Path:    "change_status",
-			Handler: md.ChangeStatus,
+			Name:    "status_change",
+			Handler: md.StatusChange,
 		},
 		{
 			Method:  consts.MethodGet,
-			Path:    "trace_logs",
+			Name:    "trace_logs",
 			Handler: md.TraceLogs,
 		},
 	}
@@ -146,12 +142,12 @@ func (md StaffModule) Create(ctx context.Context, c *app.RequestContext) {
 	resp.ReplyOK()
 }
 
-type ResetPasswordData struct {
+type PasswordResetData struct {
 	Uid      string `json:"uid"`
 	Password string `json:"password"`
 }
 
-func (md StaffModule) ResetPassword(ctx context.Context, c *app.RequestContext) {
+func (md StaffModule) PasswordReset(ctx context.Context, c *app.RequestContext) {
 	resp := md.ctrl.Resp(c)
 	params := UidReq{}
 	if err := c.Bind(&params); err != nil {
@@ -166,20 +162,20 @@ func (md StaffModule) ResetPassword(ctx context.Context, c *app.RequestContext) 
 		return
 	}
 
-	resp.ReplyData(ResetPasswordData{
+	resp.ReplyData(PasswordResetData{
 		Uid:      params.Uid,
 		Password: password,
 	})
 }
 
-type UpdateRolesReq struct {
+type RolesEditReq struct {
 	Uid   string            `json:"uid"`
 	Roles types.StringArray `json:"roles"`
 }
 
-func (md StaffModule) UpdateRoles(ctx context.Context, c *app.RequestContext) {
+func (md StaffModule) RolesEdit(ctx context.Context, c *app.RequestContext) {
 	resp := md.ctrl.Resp(c)
-	params := UpdateRolesReq{}
+	params := RolesEditReq{}
 	if err := c.Bind(&params); err != nil {
 		resp.ReplyErrorParam()
 		return
@@ -189,7 +185,7 @@ func (md StaffModule) UpdateRoles(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	be := logic.UpdateStaffRoles(params.Uid, params.Roles)
+	be := logic.EditStaffRoles(params.Uid, params.Roles)
 	if be != nil {
 		logger.Errorf("error: %v", be.String())
 		resp.ReplyErr(be.ToResp())
@@ -199,14 +195,14 @@ func (md StaffModule) UpdateRoles(ctx context.Context, c *app.RequestContext) {
 	resp.ReplyOK()
 }
 
-type ChangeStatusReq struct {
+type StatusChangeReq struct {
 	Uid    string `json:"uid"`
 	Status int32  `json:"roles"`
 }
 
-func (md StaffModule) ChangeStatus(ctx context.Context, c *app.RequestContext) {
+func (md StaffModule) StatusChange(ctx context.Context, c *app.RequestContext) {
 	resp := md.ctrl.Resp(c)
-	params := ChangeStatusReq{}
+	params := StatusChangeReq{}
 	if err := c.Bind(&params); err != nil {
 		resp.ReplyErrorParam()
 		return

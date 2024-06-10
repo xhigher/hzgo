@@ -46,15 +46,3 @@ func (ctrl Controller) IsRoleMaintainer(c *app.RequestContext) bool {
 func (ctrl Controller) IsRoleDeveloper(c *app.RequestContext) bool {
 	return ctrl.isRoleType(c, RoleDeveloper)
 }
-
-func (ctrl Controller) IsRoleOperator(c *app.RequestContext) bool {
-	return ctrl.isRoleType(c, RoleOperator)
-}
-
-func (ctrl Controller) IsRoleTreasurer(c *app.RequestContext) bool {
-	return ctrl.isRoleType(c, RoleTreasurer)
-}
-
-func (ctrl Controller) IsRoleCustomer(c *app.RequestContext) bool {
-	return ctrl.isRoleType(c, RoleCustomer)
-}

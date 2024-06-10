@@ -17,6 +17,6 @@ type PageData struct {
 }
 
 type ConfigListData struct {
-	Sum  string                      `json:"sum"`
-	Data map[string]interface{} `json:"data"`
+	Sum  string      `json:"sum"`
+	Data interface{} `json:"data"`
 }

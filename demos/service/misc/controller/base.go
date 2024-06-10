@@ -23,28 +23,23 @@ func (ctrl Controller) Name() string {
 func (ctrl Controller) Routers() []service.Router {
 	return []service.Router{
 		{
-			Version: 1,
-			Path:    "config_list",
+			Name:    "config_list",
 			Handler: ctrl.ConfigList,
 		},
 		{
-			Version: 1,
-			Path:    "config_info",
+			Name:    "config_info",
 			Handler: ctrl.ConfigInfo,
 		},
 		{
-			Version: 1,
-			Path:    "config_reload",
+			Name:    "config_reload",
 			Handler: ctrl.ConfigReload,
 		},
 		{
-			Version: 1,
-			Path:    "banner_list",
+			Name:    "banner_list",
 			Handler: ctrl.BannerList,
 		},
 		{
-			Version: 1,
-			Path:    "banner_reload",
+			Name:    "banner_reload",
 			Handler: ctrl.BannerReload,
 		},
 	}

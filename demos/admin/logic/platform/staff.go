@@ -8,7 +8,7 @@ import (
 	"github.com/xhigher/hzgo/types"
 )
 
-func CheckStaff(username, password string) (uid string, roles []string, be *bizerr.Error) {
+func CheckStaff(username, password string) (uid string, roles types.StringArray, be *bizerr.Error) {
 	staffInfo, err := model.GetStaff(username)
 	if err != nil {
 		be = bizerr.New(err)
@@ -69,7 +69,7 @@ func CreateStaff(username, nickname, phone, email string) (be *bizerr.Error) {
 	return
 }
 
-func UpdateStaffRoles(uid string, roles types.StringArray) (be *bizerr.Error) {
+func EditStaffRoles(uid string, roles types.StringArray) (be *bizerr.Error) {
 	staffInfo, err := model.GetStaffByUid(uid)
 	if err != nil {
 		be = bizerr.New(err)

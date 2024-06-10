@@ -13,9 +13,9 @@ func main() {
 	config.Init()
 	conf := config.GetConfig()
 
-	rbac.InitPermissions()
 	svr := admin.NewServer(conf)
 	svr.InitRouters(controller.New(svr.Auth))
 	api.Init()
+	rbac.InitPermissions()
 	svr.Start()
 }

@@ -40,7 +40,7 @@ func (s *HzgoServer) InitRouter(mgr RouterManager) {
 		if r.Version == 0 {
 			r.Version = 1
 		}
-		path := fmt.Sprintf("/%s/v%d/%s", mgr.Name(), r.Version, r.Path)
+		r.Path = fmt.Sprintf("/%s/v%d/%s", mgr.Name(), r.Version, r.Name)
 		handlers := make([]app.HandlerFunc, 0)
 		if r.Sign {
 			handlers = append(handlers, s.Sign.Verify())
@@ -49,16 +49,7 @@ func (s *HzgoServer) InitRouter(mgr RouterManager) {
 			handlers = append(handlers, s.Auth.Authenticate())
 		}
 		handlers = append(handlers, r.Handler)
-		switch r.Method {
-		case consts.MethodPost:
-			s.Hz.POST(path, handlers...)
-		case consts.MethodGet:
-			s.Hz.GET(path, handlers...)
-		case consts.MethodPut:
-			s.Hz.PUT(path, handlers...)
-		case consts.MethodDelete:
-			s.Hz.DELETE(path, handlers...)
-		}
+		s.Hz.Handle(string(r.Method), r.Path, handlers...)
 	}
 }
 

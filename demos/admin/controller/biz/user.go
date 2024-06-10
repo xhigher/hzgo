@@ -19,35 +19,31 @@ func (md UserModule) Name() string {
 	return rbac.BizUser
 }
 
-func (md UserModule) Roles() []string {
-	return []string{admin.RoleMaintainer, admin.RoleOperator}
-}
-
 func (md UserModule) Routers() []admin.Router {
 	return []admin.Router{
 		{
 			Method:  consts.MethodGet,
-			Path:    "info",
+			Name:    "info",
 			Handler: md.Info,
 		},
 		{
 			Method:  consts.MethodGet,
-			Path:    "list",
+			Name:    "list",
 			Handler: md.List,
 		},
 		{
 			Method:  consts.MethodGet,
-			Path:    "profile",
+			Name:    "profile",
 			Handler: md.Profile,
 		},
 		{
 			Method:  consts.MethodPost,
-			Path:    "start",
+			Name:    "start",
 			Handler: md.Start,
 		},
 		{
 			Method:  consts.MethodPost,
-			Path:    "Stop",
+			Name:    "Stop",
 			Handler: md.Stop,
 		},
 	}

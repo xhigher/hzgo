@@ -6,12 +6,12 @@ import (
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/hertz-contrib/websocket"
-	"log"
 	"github.com/xhigher/hzgo/config"
 	"github.com/xhigher/hzgo/consts"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/mysql"
 	"github.com/xhigher/hzgo/utils"
+	"log"
 )
 
 type HzgoServer struct {
@@ -46,12 +46,7 @@ func NewServer(conf *config.ServerConfig, handler Handler) *HzgoServer {
 
 func (s *HzgoServer) Start(api API) {
 	for _, r := range api.Routers() {
-		switch r.Method {
-		case consts.MethodPost:
-			s.Hz.POST("/api/"+r.Path, r.Handler)
-		case consts.MethodGet:
-			s.Hz.GET("/api/"+r.Path, r.Handler)
-		}
+		s.Hz.Handle(string(r.Method), "/api/"+r.Name, r.Handler)
 	}
 
 	s.Hz.GET("/ws", s.wsHandler)

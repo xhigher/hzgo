@@ -1,4 +1,4 @@
-name: "gw-user"
+name: "admin"
 addr: 0.0.0.0:10000
 
 logger:

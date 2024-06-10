@@ -7,7 +7,7 @@ import (
 
 type Router struct {
 	Method  consts.HttpMethod
-	Path    string
+	Name    string
 	Handler app.HandlerFunc
 }
 
