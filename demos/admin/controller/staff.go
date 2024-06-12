@@ -6,7 +6,6 @@ import (
 	"github.com/xhigher/hzgo/consts"
 	"github.com/xhigher/hzgo/defines"
 	logic "github.com/xhigher/hzgo/demos/admin/logic/platform"
-	"github.com/xhigher/hzgo/demos/admin/rbac"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/server/admin"
 	"github.com/xhigher/hzgo/types"
@@ -17,7 +16,7 @@ type StaffModule struct {
 }
 
 func (md StaffModule) Name() string {
-	return rbac.Staff
+	return "staff"
 }
 
 func (md StaffModule) Routers() []admin.Router {

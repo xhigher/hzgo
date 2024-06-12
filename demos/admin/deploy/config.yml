@@ -28,7 +28,7 @@ mysql:
     logger-zap:
   - host: 127.0.0.1
     port: 3306
-    db-name: pa_user
+    db-name: pa_biz
     extras:
     user: root
     password: 7isAs3ua)j4*6vmu

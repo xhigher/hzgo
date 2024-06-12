@@ -52,3 +52,18 @@ func GetRoleMenuList(role string, offset, limit int32) (total int64, data []*adm
 	}
 	return
 }
+
+func GetAllRolesPermissions() (data map[string]map[string]bool, err error) {
+	tempData, err := model.GetAllRolesPermissions()
+	if err != nil {
+		return
+	}
+	data = map[string]map[string]bool{}
+	for _, item := range tempData {
+		if _, ok := data[item.Rid]; !ok {
+			data[item.Rid] = map[string]bool{}
+		}
+		data[item.Rid][item.Path] = true
+	}
+	return
+}

@@ -6,7 +6,6 @@ import (
 	"github.com/xhigher/hzgo/consts"
 	"github.com/xhigher/hzgo/defines"
 	logic "github.com/xhigher/hzgo/demos/admin/logic/platform"
-	"github.com/xhigher/hzgo/demos/admin/rbac"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/server/admin"
 )
@@ -15,8 +14,8 @@ type RBACModule struct {
 	ctrl *admin.Controller
 }
 
-func (md RBACModule) RBACModule() string {
-	return rbac.Staff
+func (md RBACModule) Name() string {
+	return "rbac"
 }
 
 func (md RBACModule) Routers() []admin.Router {
@@ -27,7 +26,7 @@ func (md RBACModule) Routers() []admin.Router {
 			Handler: md.RoleList,
 		},
 		{
-			Method:  consts.MethodGet,
+			Method:  consts.MethodPost,
 			Name:    "role_save",
 			Handler: md.RoleSave,
 		},
@@ -48,7 +47,7 @@ func (md RBACModule) Routers() []admin.Router {
 			Handler: md.MenuList,
 		},
 		{
-			Method:  consts.MethodGet,
+			Method:  consts.MethodPost,
 			Name:    "menu_save",
 			Handler: md.MenuSave,
 		},

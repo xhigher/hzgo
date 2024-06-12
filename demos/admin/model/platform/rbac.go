@@ -272,20 +272,11 @@ func RemoveRoleMenu(rid string, mid int) (err error) {
 	return
 }
 
-func ReloadRolePermissions() (data map[string]map[string]bool, err error) {
-	var tempData []*admin.RolePermissionsModel
-	err = admin.DB().Model(admin.RolePermissionsModel{}).Find(&tempData).Error
+func GetAllRolesPermissions() (data []*admin.RolePermissionsModel, err error) {
+	err = admin.DB().Find(&data).Error
 	if err != nil {
 		logger.Errorf("error: %v", err)
 		return
 	}
-	data = map[string]map[string]bool{}
-	for _, item := range tempData {
-		if _, ok := data[item.Rid]; !ok {
-			data[item.Rid] = map[string]bool{}
-		}
-		data[item.Rid][item.Path] = true
-	}
-
 	return
 }

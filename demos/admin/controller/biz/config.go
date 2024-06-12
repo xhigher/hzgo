@@ -7,7 +7,6 @@ import (
 	"github.com/xhigher/hzgo/consts"
 	"github.com/xhigher/hzgo/defines"
 	logic "github.com/xhigher/hzgo/demos/admin/logic/misc"
-	"github.com/xhigher/hzgo/demos/admin/rbac"
 	"github.com/xhigher/hzgo/logger"
 	"github.com/xhigher/hzgo/server/admin"
 )
@@ -17,7 +16,7 @@ type ConfigModule struct {
 }
 
 func (md ConfigModule) Name() string {
-	return rbac.BizConfig
+	return "biz-config"
 }
 
 func (md ConfigModule) Routers() []admin.Router {

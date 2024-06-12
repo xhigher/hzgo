@@ -22,6 +22,9 @@ func (ctrl Controller) Modules() []admin.Module {
 		StaffModule{
 			ctrl: ctrl.base,
 		},
+		RBACModule{
+			ctrl: ctrl.base,
+		},
 	}
 	return append(baseModules, bizModules...)
 }
